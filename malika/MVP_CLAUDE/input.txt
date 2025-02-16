@@ -1,0 +1,24 @@
+import db from "database";
+
+component UserProfile {
+  render(user) {
+    return <div>
+      <h1>{user.name}</h1>
+      <p>{user.email}</p>
+    </div>;
+  }
+}
+
+route "/profile" {
+  get(req, res) {
+    const user = db.find("users", { id: req.params.id });
+    res.send(<UserProfile user={user} />);
+  }
+}
+
+route "/api/users" {
+  get(req, res) {
+    const users = db.findAll("users");
+    res.json(users);
+  }
+}

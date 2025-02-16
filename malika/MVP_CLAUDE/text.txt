@@ -1,0 +1,22 @@
+//starting parseStarting parse
+// Component UserProfile template
+void renderUserProfile(char *buffer, const char *name, const char *email) {
+    sprintf(buffer, "<div>\n");
+    sprintf(buffer + strlen(buffer), "  <h1>%s</h1>\n", name);
+    sprintf(buffer + strlen(buffer), "  <p>%s</p>\n", email);
+    sprintf(buffer + strlen(buffer), "</div>");
+}
+
+void profileHandler(HttpRequest *req, HttpResponse *res) {
+    char buffer[1024];
+    User user = db_find("users", "id", req->params["id"]);
+    renderUserProfile(buffer, user.name, user.email);
+    http_send(res, buffer);
+}
+
+void apiUsersHandler(HttpRequest *req, HttpResponse *res) {
+    User *users = db_find_all("users");
+    http_send_json(res, users);
+}
+
+Parsing completed successfully
