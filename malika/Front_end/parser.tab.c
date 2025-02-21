@@ -72,6 +72,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 extern int yylex();
 void yyerror(const char *s);
@@ -79,11 +80,12 @@ void yyerror(const char *s);
 #define YYDEBUG 1
 char identifiers[100][50];      // Stocke les identifiants rencontrés
 char types[100][50];            // Stocke les types rencontrés
-int id_count = 1;               // Compteur des identifiants
+int id_count = 0;               // Compteur des identifiants
+int found = 0;
 
 
 /* Line 189 of yacc.c  */
-#line 87 "parser.tab.c"
+#line 89 "parser.tab.c"
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
@@ -133,7 +135,7 @@ typedef union YYSTYPE
 {
 
 /* Line 214 of yacc.c  */
-#line 14 "parser.y"
+#line 16 "parser.y"
 
     int intval;   // For numeric values
     char* strval; // For strings like IDENTIFIER
@@ -141,7 +143,7 @@ typedef union YYSTYPE
 
 
 /* Line 214 of yacc.c  */
-#line 145 "parser.tab.c"
+#line 147 "parser.tab.c"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -153,7 +155,7 @@ typedef union YYSTYPE
 
 
 /* Line 264 of yacc.c  */
-#line 157 "parser.tab.c"
+#line 159 "parser.tab.c"
 
 #ifdef short
 # undef short
@@ -442,8 +444,8 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    29,    29,    33,    42,    43,    47,    49,    60,    78,
-      79,   100,   116,   127,   137,   147,   169,   194
+       0,    31,    31,    35,    44,    45,    49,    51,    62,    80,
+      81,   102,   118,   129,   139,   149,   185,   222
 };
 #endif
 
@@ -1365,7 +1367,7 @@ yyreduce:
         case 3:
 
 /* Line 1455 of yacc.c  */
-#line 34 "parser.y"
+#line 36 "parser.y"
     { 
           /* $2 is the component name and $4 is the parameter list */
           printf("void render%s(%s) {%s}\n", (yyvsp[(2) - (8)].strval), (yyvsp[(4) - (8)].strval),(yyvsp[(7) - (8)].strval));
@@ -1376,28 +1378,28 @@ yyreduce:
   case 4:
 
 /* Line 1455 of yacc.c  */
-#line 42 "parser.y"
+#line 44 "parser.y"
     { (yyval.strval) = strdup(""); ;}
     break;
 
   case 5:
 
 /* Line 1455 of yacc.c  */
-#line 43 "parser.y"
+#line 45 "parser.y"
     { (yyval.strval) = (yyvsp[(1) - (1)].strval); ;}
     break;
 
   case 6:
 
 /* Line 1455 of yacc.c  */
-#line 48 "parser.y"
+#line 50 "parser.y"
     { (yyval.strval) = (yyvsp[(1) - (1)].strval); ;}
     break;
 
   case 7:
 
 /* Line 1455 of yacc.c  */
-#line 50 "parser.y"
+#line 52 "parser.y"
     {
           /* Concatenate the previous list with ", " and the new parameter */
           char* tmp = malloc(strlen((yyvsp[(1) - (3)].strval)) + strlen((yyvsp[(3) - (3)].strval)) + 3); // extra space for comma, space, and '\0'
@@ -1410,12 +1412,12 @@ yyreduce:
   case 8:
 
 /* Line 1455 of yacc.c  */
-#line 61 "parser.y"
+#line 63 "parser.y"
     {
         
         strcpy(identifiers[id_count], (yyvsp[(1) - (3)].strval));
         strcpy(types[id_count], (yyvsp[(3) - (3)].strval)); // Sauvegarde du type
-        
+        id_count++;
         /* The DSL expects parameters as "var : type".
             In C, parameters are declared as "type var". 
             So $1 is the variable name and $3 is its type.
@@ -1430,23 +1432,23 @@ yyreduce:
   case 9:
 
 /* Line 1455 of yacc.c  */
-#line 78 "parser.y"
+#line 80 "parser.y"
     { (yyval.strval) = strdup(""); ;}
     break;
 
   case 10:
 
 /* Line 1455 of yacc.c  */
-#line 80 "parser.y"
+#line 82 "parser.y"
     { 
         char* tmp = malloc(strlen((yyvsp[(6) - (7)].strval)) + 50); // Allouer mémoire pour printf
         sprintf(tmp, "\n\tprintf(\"%s\"", (yyvsp[(6) - (7)].strval));
         free((yyvsp[(6) - (7)].strval));
 
         // Ajouter les arguments à printf
-        if (id_count > 1) {
+        if (id_count > 0) {
             strcat(tmp, ", ");
-            for (int i = 1; i < id_count; i++) {
+            for (int i = 0; i < id_count; i++) {
                 strcat(tmp, identifiers[i]);
                 if (i < id_count - 1) strcat(tmp, ", ");
             }
@@ -1460,7 +1462,7 @@ yyreduce:
   case 11:
 
 /* Line 1455 of yacc.c  */
-#line 101 "parser.y"
+#line 103 "parser.y"
     { 
         char* tmp = malloc(strlen((yyvsp[(1) - (3)].strval)) + strlen((yyvsp[(2) - (3)].strval)) + strlen((yyvsp[(3) - (3)].strval)) + 1);
         if (strcmp((yyvsp[(1) - (3)].strval), (yyvsp[(3) - (3)].strval)) == 0){
@@ -1480,7 +1482,7 @@ yyreduce:
   case 12:
 
 /* Line 1455 of yacc.c  */
-#line 117 "parser.y"
+#line 119 "parser.y"
     { 
         char* tmp = malloc( strlen((yyvsp[(1) - (1)].strval)) + 5);
         sprintf(tmp, "%s", (yyvsp[(1) - (1)].strval));
@@ -1493,7 +1495,7 @@ yyreduce:
   case 13:
 
 /* Line 1455 of yacc.c  */
-#line 128 "parser.y"
+#line 130 "parser.y"
     {
         char* tmp = malloc(strlen((yyvsp[(2) - (3)].strval)) + 3); // "<tag>"
         sprintf(tmp, "%s", (yyvsp[(2) - (3)].strval));
@@ -1505,7 +1507,7 @@ yyreduce:
   case 14:
 
 /* Line 1455 of yacc.c  */
-#line 138 "parser.y"
+#line 140 "parser.y"
     {
         char* tmp = malloc(strlen((yyvsp[(3) - (4)].strval)) + 4); // "</tag>"
         sprintf(tmp, "%s", (yyvsp[(3) - (4)].strval));
@@ -1517,63 +1519,89 @@ yyreduce:
   case 15:
 
 /* Line 1455 of yacc.c  */
-#line 148 "parser.y"
+#line 150 "parser.y"
     { 
-        // Trouver le type de l'identifiant
-        char format[10] = "%s"; // Par défaut, on suppose une string
-        for (int i = 0; i <= id_count; i++) { 
-            if (strcmp(identifiers[i+1], (yyvsp[(1) - (1)].strval)) == 0) {
-                if (strcmp(types[i+1], "int") == 0) {
-                    strcpy(format, "%d");
-                } else if (strcmp(types[i+1], "float") == 0) {
-                    strcpy(format, "%f");
-                }
-                break;
+        found = 0;
+        char format[10] = "%s";  // Format par défaut pour string
+        // Vérifier si l'identifiant existe dans le tableau des identifiants
+        for (int i = 0; i < id_count; i++) {
+            if (strcmp(identifiers[i], (yyvsp[(1) - (1)].strval)) == 0) {
+                found = 1;
+                break;  // Si trouvé, on peut arrêter la boucle
             }
         }
 
-        // Stocker l'identifiant
-        strcpy(identifiers[id_count], (yyvsp[(1) - (1)].strval));
-        id_count++;
-        // Retourner le bon placeholder
+        // Si l'identifiant n'est pas trouvé, afficher une erreur
+        if (found==0) {
+            printf("//Erreur : L'identifiant n'est pas un paramètre.");
+            yyerror("Erreur : L'identifiant n'est pas un paramètre.");
+            YYERROR;
+        } else {
+            // L'identifiant est trouvé, maintenant vérifier son type
+            for (int i = 0; i < id_count; i++) { 
+                if (strcmp(identifiers[i], (yyvsp[(1) - (1)].strval)) == 0) {
+                    if (strcmp(types[i], "int") == 0) {
+                        strcpy(format, "%d");
+                    } else if (strcmp(types[i], "float") == 0) {
+                        strcpy(format, "%f");
+                    }
+                    break;  // Une fois trouvé, on peut arrêter la boucle
+                }
+            }
+        }
+
+        // Retourner le bon placeholder (format)
         (yyval.strval) = strdup(format);
         free((yyvsp[(1) - (1)].strval));
+
     ;}
     break;
 
   case 16:
 
 /* Line 1455 of yacc.c  */
-#line 170 "parser.y"
+#line 186 "parser.y"
     { 
-       // Trouver le type de l'identifiant
-        char format[10] = "%s"; // Par défaut, on suppose une string
+        found = 0;
+        char format[10] = "%s";  // Format par défaut pour string
+        // Vérifier si l'identifiant existe dans le tableau des identifiants
         for (int i = 0; i < id_count; i++) {
-            if (strcmp(identifiers[i+1], (yyvsp[(2) - (3)].strval)) == 0) {
-                if (strcmp(types[i+1], "int") == 0) {
-                    strcpy(format, "%d");
-                } else if (strcmp(types[i+1], "float") == 0) {
-                    strcpy(format, "%f");
-                }
-                break;
+            if (strcmp(identifiers[i], (yyvsp[(2) - (3)].strval)) == 0) {
+                found = 1;
+                break;  // Si trouvé, on peut arrêter la boucle
             }
         }
 
-        // Stocker l'identifiant
-        strcpy(identifiers[id_count], (yyvsp[(2) - (3)].strval));
-        id_count++;
+        // Si l'identifiant n'est pas trouvé, afficher une erreur
+        if (found==0) {
+            printf("//Erreur : L'identifiant n'est pas un paramètre.");
+            yyerror("Erreur : L'identifiant n'est pas un paramètre.");
+            YYERROR;
+        } else {
+            // L'identifiant est trouvé, maintenant vérifier son type
+            for (int i = 0; i < id_count; i++) { 
+                if (strcmp(identifiers[i], (yyvsp[(2) - (3)].strval)) == 0) {
+                    if (strcmp(types[i], "int") == 0) {
+                        strcpy(format, "%d");
+                    } else if (strcmp(types[i], "float") == 0) {
+                        strcpy(format, "%f");
+                    }
+                    break;  // Une fois trouvé, on peut arrêter la boucle
+                }
+            }
+        }
 
-        // Retourner le bon placeholder
+        // Retourner le bon placeholder (format)
         (yyval.strval) = strdup(format);
-
         free((yyvsp[(2) - (3)].strval));
+
     ;}
     break;
 
   case 17:
 
 /* Line 1455 of yacc.c  */
-#line 194 "parser.y"
+#line 222 "parser.y"
     { 
         (yyval.strval) = strdup("");
     ;}
@@ -1582,7 +1610,7 @@ yyreduce:
 
 
 /* Line 1455 of yacc.c  */
-#line 1586 "parser.tab.c"
+#line 1614 "parser.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -1794,13 +1822,13 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 200 "parser.y"
+#line 228 "parser.y"
 
 
 void yyerror(const char *s) {
     fprintf(stderr, "Error: %s\n", s);
+    exit(1);  // Or set a global error flag
 }
-
 
 int main() {
     yydebug = 1;
