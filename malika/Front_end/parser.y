@@ -62,6 +62,7 @@ typed_param:
         
         strcpy(identifiers[id_count], $1);
         strcpy(types[id_count], $3); // Sauvegarde du type
+        
         /* The DSL expects parameters as "var : type".
             In C, parameters are declared as "type var". 
             So $1 is the variable name and $3 is its type.
@@ -82,9 +83,9 @@ function:
         free($6);
 
         // Ajouter les arguments à printf
-        if (id_count > 0) {
+        if (id_count > 1) {
             strcat(tmp, ", ");
-            for (int i = 0; i <= id_count; i++) {
+            for (int i = 1; i < id_count; i++) {
                 strcat(tmp, identifiers[i]);
                 if (i < id_count - 1) strcat(tmp, ", ");
             }

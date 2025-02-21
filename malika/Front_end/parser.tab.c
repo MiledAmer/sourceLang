@@ -442,8 +442,8 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    29,    29,    33,    42,    43,    47,    49,    60,    77,
-      78,    99,   115,   126,   136,   146,   168,   193
+       0,    29,    29,    33,    42,    43,    47,    49,    60,    78,
+      79,   100,   116,   127,   137,   147,   169,   194
 };
 #endif
 
@@ -1415,6 +1415,7 @@ yyreduce:
         
         strcpy(identifiers[id_count], (yyvsp[(1) - (3)].strval));
         strcpy(types[id_count], (yyvsp[(3) - (3)].strval)); // Sauvegarde du type
+        
         /* The DSL expects parameters as "var : type".
             In C, parameters are declared as "type var". 
             So $1 is the variable name and $3 is its type.
@@ -1429,23 +1430,23 @@ yyreduce:
   case 9:
 
 /* Line 1455 of yacc.c  */
-#line 77 "parser.y"
+#line 78 "parser.y"
     { (yyval.strval) = strdup(""); ;}
     break;
 
   case 10:
 
 /* Line 1455 of yacc.c  */
-#line 79 "parser.y"
+#line 80 "parser.y"
     { 
         char* tmp = malloc(strlen((yyvsp[(6) - (7)].strval)) + 50); // Allouer mémoire pour printf
         sprintf(tmp, "\n\tprintf(\"%s\"", (yyvsp[(6) - (7)].strval));
         free((yyvsp[(6) - (7)].strval));
 
         // Ajouter les arguments à printf
-        if (id_count > 0) {
+        if (id_count > 1) {
             strcat(tmp, ", ");
-            for (int i = 0; i <= id_count; i++) {
+            for (int i = 1; i < id_count; i++) {
                 strcat(tmp, identifiers[i]);
                 if (i < id_count - 1) strcat(tmp, ", ");
             }
@@ -1459,7 +1460,7 @@ yyreduce:
   case 11:
 
 /* Line 1455 of yacc.c  */
-#line 100 "parser.y"
+#line 101 "parser.y"
     { 
         char* tmp = malloc(strlen((yyvsp[(1) - (3)].strval)) + strlen((yyvsp[(2) - (3)].strval)) + strlen((yyvsp[(3) - (3)].strval)) + 1);
         if (strcmp((yyvsp[(1) - (3)].strval), (yyvsp[(3) - (3)].strval)) == 0){
@@ -1479,7 +1480,7 @@ yyreduce:
   case 12:
 
 /* Line 1455 of yacc.c  */
-#line 116 "parser.y"
+#line 117 "parser.y"
     { 
         char* tmp = malloc( strlen((yyvsp[(1) - (1)].strval)) + 5);
         sprintf(tmp, "%s", (yyvsp[(1) - (1)].strval));
@@ -1492,7 +1493,7 @@ yyreduce:
   case 13:
 
 /* Line 1455 of yacc.c  */
-#line 127 "parser.y"
+#line 128 "parser.y"
     {
         char* tmp = malloc(strlen((yyvsp[(2) - (3)].strval)) + 3); // "<tag>"
         sprintf(tmp, "%s", (yyvsp[(2) - (3)].strval));
@@ -1504,7 +1505,7 @@ yyreduce:
   case 14:
 
 /* Line 1455 of yacc.c  */
-#line 137 "parser.y"
+#line 138 "parser.y"
     {
         char* tmp = malloc(strlen((yyvsp[(3) - (4)].strval)) + 4); // "</tag>"
         sprintf(tmp, "%s", (yyvsp[(3) - (4)].strval));
@@ -1516,7 +1517,7 @@ yyreduce:
   case 15:
 
 /* Line 1455 of yacc.c  */
-#line 147 "parser.y"
+#line 148 "parser.y"
     { 
         // Trouver le type de l'identifiant
         char format[10] = "%s"; // Par défaut, on suppose une string
@@ -1543,7 +1544,7 @@ yyreduce:
   case 16:
 
 /* Line 1455 of yacc.c  */
-#line 169 "parser.y"
+#line 170 "parser.y"
     { 
        // Trouver le type de l'identifiant
         char format[10] = "%s"; // Par défaut, on suppose une string
@@ -1572,7 +1573,7 @@ yyreduce:
   case 17:
 
 /* Line 1455 of yacc.c  */
-#line 193 "parser.y"
+#line 194 "parser.y"
     { 
         (yyval.strval) = strdup("");
     ;}
@@ -1581,7 +1582,7 @@ yyreduce:
 
 
 /* Line 1455 of yacc.c  */
-#line 1585 "parser.tab.c"
+#line 1586 "parser.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -1793,7 +1794,7 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 199 "parser.y"
+#line 200 "parser.y"
 
 
 void yyerror(const char *s) {
