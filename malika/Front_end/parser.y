@@ -6,8 +6,9 @@ extern int yylex();
 void yyerror(const char *s);
 
 #define YYDEBUG 1
-char identifiers[100][50]; // Stocke les identifiants rencontrés
-int id_count = 0; // Compteur des identifiants
+char identifiers[100][50];      // Stocke les identifiants rencontrés
+char types[100][50];            // Stocke les types rencontrés
+int id_count = 1;               // Compteur des identifiants
 %}
 
 %union {
@@ -58,13 +59,17 @@ typed_param_list:
 typed_param:
       IDENTIFIER COLON IDENTIFIER
       {
-          /* The DSL expects parameters as "var : type".
-             In C, parameters are declared as "type var". 
-             So $1 is the variable name and $3 is its type.
-          */
-          char* res = malloc(strlen($1) + strlen($3) + 2);
-          sprintf(res, "%s %s", $3, $1);
-          $$ = res;
+        
+        strcpy(identifiers[id_count], $1);
+        strcpy(types[id_count], $3); // Sauvegarde du type
+        /* The DSL expects parameters as "var : type".
+            In C, parameters are declared as "type var". 
+            So $1 is the variable name and $3 is its type.
+        */
+
+        char* res = malloc(strlen($1) + strlen($3) + 2);
+        sprintf(res, "%s %s", $3, $1);
+        $$ = res;
       }
     ;
 
@@ -79,7 +84,7 @@ function:
         // Ajouter les arguments à printf
         if (id_count > 0) {
             strcat(tmp, ", ");
-            for (int i = 0; i < id_count; i++) {
+            for (int i = 0; i <= id_count; i++) {
                 strcat(tmp, identifiers[i]);
                 if (i < id_count - 1) strcat(tmp, ", ");
             }
@@ -140,21 +145,47 @@ html_balise_close:
 html_inner:
     IDENTIFIER
     { 
-        // Stocker l'identifiant pour l'ajouter à printf
-        strcpy(identifiers[id_count++], $1);
+        // Trouver le type de l'identifiant
+        char format[10] = "%s"; // Par défaut, on suppose une string
+        for (int i = 0; i <= id_count; i++) { 
+            if (strcmp(identifiers[i+1], $1) == 0) {
+                if (strcmp(types[i+1], "int") == 0) {
+                    strcpy(format, "%d");
+                } else if (strcmp(types[i+1], "float") == 0) {
+                    strcpy(format, "%f");
+                }
+                break;
+            }
+        }
 
-        // Retourner un placeholder pour printf
-        $$ = strdup("%s");
-
+        // Stocker l'identifiant
+        strcpy(identifiers[id_count], $1);
+        id_count++;
+        // Retourner le bon placeholder
+        $$ = strdup(format);
         free($1);
     }
     | LBRACE IDENTIFIER RBRACE 
     { 
-       // Stocker l'identifiant pour l'ajouter à printf
-        strcpy(identifiers[id_count++], $2);
+       // Trouver le type de l'identifiant
+        char format[10] = "%s"; // Par défaut, on suppose une string
+        for (int i = 0; i < id_count; i++) {
+            if (strcmp(identifiers[i+1], $2) == 0) {
+                if (strcmp(types[i+1], "int") == 0) {
+                    strcpy(format, "%d");
+                } else if (strcmp(types[i+1], "float") == 0) {
+                    strcpy(format, "%f");
+                }
+                break;
+            }
+        }
 
-        // Retourner un placeholder pour printf
-        $$ = strdup("%s");
+        // Stocker l'identifiant
+        strcpy(identifiers[id_count], $2);
+        id_count++;
+
+        // Retourner le bon placeholder
+        $$ = strdup(format);
 
         free($2);
     }
