@@ -14,6 +14,16 @@ if [ ! -f parser.y ]; then
     exit 1
 fi
 
+# Run bison to generate parser.tab.c and parser.tab.h from parser.y
+echo "Running bison to generate parser.tab.c and parser.tab.h..."
+bison -d parser.y
+
+# Check if parser.tab.c was generated
+if [ ! -f parser.tab.c ]; then
+    echo "Error: parser.tab.c was not generated!"
+    exit 1
+fi
+
 # Run flex to generate lex.yy.c from lexer.l
 echo "Running flex to generate lex.yy.c..."
 flex lexer.l
@@ -24,15 +34,6 @@ if [ ! -f lex.yy.c ]; then
     exit 1
 fi
 
-# Run bison to generate parser.tab.c and parser.tab.h from parser.y
-echo "Running bison to generate parser.tab.c and parser.tab.h..."
-bison -d parser.y
-
-# Check if parser.tab.c was generated
-if [ ! -f parser.tab.c ]; then
-    echo "Error: parser.tab.c was not generated!"
-    exit 1
-fi
 
 # Compile everything with GCC
 echo "Compiling with GCC..."
