@@ -14,47 +14,33 @@ int yylex(void);
 %debug
 %union {
     int intVal;
+    float floatVal;
     char *str;
 }
 
+%token VOID CHAR SHORT INT_TYPE LONG FLOAT DOUBLE BOOL_TYPE UNSIGNED SIGNED STRUCT UNION ENUM TYPEDEF CONST 
+%token STATIC EXTERN REGISTER VOLATILE FUNCTION RETURN TRUE FALSE AND_OP OR_OP EQ_OP NE_OP LE_OP GE_OP
+
 %token <str> IDENTIFIER STRING_LITERAL
 %token <intVal> INT_LITERAL
-%token RETURN VOID
-%token USER_TYPE BOOL_TYPE INT_TYPE REQUEST_TYPE USERDATA_TYPE
-
-%type <str> type_spec route_object route_method route_expr route_function_expr
-
+%token <floatVal> FLOAT_LITERAL
 
 %%
 
 program:
-      program element
-    | element
-    ;
-
-element:
-      function_declaration
-    | route_registration
+      program function_declaration
+    | function_declaration
+    | 
     ;
 
 function_declaration:
-      type_spec IDENTIFIER '(' param_list_opt ')' '{' function_body '}'
+      FUNCTION IDENTIFIER '(' params ')' ':' type  function_body
       {
-          /* Generate corresponding C function signature and body */
-          printf("Parsed function: %s returns %s\n", $2, $1);
+        printf("Parsed function: %s\n", $2);
       }
     ;
 
-type_spec:
-      USER_TYPE         { $$ = "User"; }
-    | BOOL_TYPE         { $$ = "bool"; }
-    | INT_TYPE          { $$ = "int"; }
-    | REQUEST_TYPE      { $$ = "Request"; }
-    | USERDATA_TYPE     { $$ = "UserData"; }
-    | IDENTIFIER        { $$ = $1; }
-    ;
-
-param_list_opt:
+params:
       /* empty */
     | param_list
     ;
@@ -65,77 +51,60 @@ param_list:
     ;
 
 param:
-      type_spec IDENTIFIER
+      IDENTIFIER ':' type
       {
           /* You can process parameter info here if needed */
       }
     ;
 
+type:
+      VOID
+    | CHAR
+    | SHORT
+    | INT_TYPE
+    | LONG
+    | FLOAT
+    | DOUBLE
+    | BOOL_TYPE
+    | UNSIGNED
+    | SIGNED
+    | ENUM
+    | FUNCTION
+    | IDENTIFIER
+
 function_body:
-      body_content
+      '{' statement_list '}'
     ;
 
-/* For MVP, simply consume tokens in the function body. 
-   You can later replace this with a detailed grammar for statements. */
-body_content:
+statement_list:
       /* empty */
-    | body_content any_token
+    | statement_list statement
     ;
 
-any_token:
+statement:
+      RETURN expression ';'
+    | variable_declaration ';'
+    | expression ';'
+    ;
+
+variable_declaration:
+      type IDENTIFIER '=' expression
+    ;
+
+expression:
       IDENTIFIER
     | STRING_LITERAL
     | INT_LITERAL
-    | RETURN
-    | '('
-    | ')'
-    | '{'
-    | '}'
-    | ','
-    | ';'
-    | VOID
-    | USER_TYPE
-    | BOOL_TYPE
-    | INT_TYPE
-    | REQUEST_TYPE
-    | USERDATA_TYPE
+    | FLOAT_LITERAL
+    | TRUE
+    | FALSE
+    | function_call
+    | IDENTIFIER '=' expression
     ;
 
-/* --- Route Registration Parsing Rules --- */
-
-/* A route registration is a complete expression ending with a semicolon */
-route_registration:
-      route_expr ';'
-      ;
-
-route_expr:
-      route_object '.' route_method '(' STRING_LITERAL ',' route_function_expr ')'
-      {
-          /* $1: object (e.g. Route)
-             $3: HTTP method (e.g. get, post)
-             $5: route path (string literal)
-             $7: function reference (identifier) */
-          printf("Parsed route registration: %s.%s(\"%s\", %s)\n", $1, $3, $5, $7);
-      }
-      ;
-
-/* The object that provides the route method */
-route_object:
-      IDENTIFIER
-      ;
-
-/* The HTTP method as an identifier (e.g. get, post) */
-route_method:
-      IDENTIFIER
-      ;
-
-/* The function reference may be either a plain identifier or a cast expression */
-route_function_expr:
-      IDENTIFIER
-      { $$ = $1; }
-    | '(' VOID ')' IDENTIFIER
-      { $$ = $4; }
-      ;
+function_call:
+      IDENTIFIER '(' params ')'
+    ;
 
 %%
 
@@ -145,10 +114,6 @@ void yyerror(const char *s) {
     } else {
         fprintf(stderr, "Syntax error: %s at line %d, near unexpected end of input\n", s, yylineno);
     }
-}
-
-int yywrap(void) {
-    return 1;  // Indicates end of input
 }
 
 int main(void) {

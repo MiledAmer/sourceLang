@@ -39,39 +39,19 @@
    /* Put the tokens into the symbol table, so that GDB and other debuggers
       know about them.  */
    enum yytokentype {
-     VOID = 258,
-     CHAR = 259,
-     SHORT = 260,
-     INT_TYPE = 261,
-     LONG = 262,
-     FLOAT = 263,
-     DOUBLE = 264,
-     BOOL_TYPE = 265,
-     UNSIGNED = 266,
-     SIGNED = 267,
-     STRUCT = 268,
-     UNION = 269,
-     ENUM = 270,
-     TYPEDEF = 271,
-     CONST = 272,
-     STATIC = 273,
-     EXTERN = 274,
-     REGISTER = 275,
-     VOLATILE = 276,
-     FUNCTION = 277,
-     RETURN = 278,
-     TRUE = 279,
-     FALSE = 280,
-     AND_OP = 281,
-     OR_OP = 282,
-     EQ_OP = 283,
-     NE_OP = 284,
-     LE_OP = 285,
-     GE_OP = 286,
-     IDENTIFIER = 287,
-     STRING_LITERAL = 288,
-     INT_LITERAL = 289,
-     FLOAT_LITERAL = 290
+     COMPONENT = 258,
+     LBRACE = 259,
+     RBRACE = 260,
+     LPAREN = 261,
+     RPAREN = 262,
+     LT = 263,
+     GT = 264,
+     COMMA = 265,
+     COLON = 266,
+     SEMICOLON = 267,
+     SLASH = 268,
+     RETURN = 269,
+     IDENTIFIER = 270
    };
 #endif
 
@@ -82,16 +62,15 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 15 "parser.y"
+#line 12 "parser.y"
 
-    int intVal;
-    float floatVal;
-    char *str;
+    int intval;   // For numeric values
+    char* strval; // For strings like IDENTIFIER
 
 
 
 /* Line 1676 of yacc.c  */
-#line 95 "parser.tab.h"
+#line 74 "parser.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

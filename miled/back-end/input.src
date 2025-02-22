@@ -1,14 +1,20 @@
-User getUsers(Request request) {
+function getUsers(request:Request):bool {
     // Fetch users from DB
-    return some_user_list;
+    return true;
 }
 
-User getUser(Request request, int id) {
+function getUser(request:Request, id:int):bool {
     // Fetch a single user
-    return some_user;
+    return true;
 }
 
-bool createUser(Request request, UserData data) {
+function createUser(request:Request, data:UserData):bool {
     // Insert user into DB
     return true;
 }
+
+/*function server ():void{
+    Route.get("/get-users", getUsers);
+    Route.get("/get-user", getUser);
+    Route.post("/create-user", createUser)
+}*/
