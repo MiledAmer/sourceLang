@@ -1,0 +1,14 @@
+User getUsers(Request request) {
+    // Fetch users from DB
+    return some_user_list;
+}
+
+User getUser(Request request, int id) {
+    // Fetch a single user
+    return some_user;
+}
+
+bool createUser(Request request, UserData data) {
+    // Insert user into DB
+    return true;
+}
