@@ -83,18 +83,33 @@ char output_buffer[10000];
 int buffer_index = 0;
 
 // Track required headers
-int needs_string = 0;
-int needs_math = 0;
-int needs_stdlib = 0;
-int needs_stdio = 0;
-int needs_ctype = 0;
-int needs_time = 0;
-int needs_unistd = 0;
 int needs_assert = 0;
-int needs_fcntl = 0;
-int needs_pthread = 0;
+int needs_complex = 0;
+int needs_ctype = 0;
 int needs_errno = 0;
+int needs_fenv = 0;
+int needs_float = 0;
+int needs_inttypes = 0;
+int needs_limits = 0;
+int needs_locale = 0;
+int needs_math = 0;
+int needs_setjmp = 0;
 int needs_signal = 0;
+int needs_stdio = 0;
+int needs_stdlib = 0;
+int needs_string = 0;
+int needs_time = 0;
+int needs_wchar = 0;
+int needs_wctype = 0;
+int needs_tgmath = 0;
+int needs_stddef = 0;
+int needs_stdbool = 0;
+int needs_stdarg = 0;
+int needs_stdalign = 0;
+int needs_iso646 = 0;
+int needs_unistd = 0;
+int needs_fcntl = 0;
+int needs_threads = 0;
 
 // Function to store output in buffer
 void append_to_buffer(const char *text) {
@@ -106,25 +121,39 @@ void append_to_buffer(const char *text) {
 void generate_includes() {
     printf("/* Includes automatiques */\n");
 
-    if (needs_stdio) printf("#include <stdio.h>\n");
-    if (needs_string) printf("#include <string.h>\n");
-    if (needs_math) printf("#include <math.h>\n");
-    if (needs_stdlib) printf("#include <stdlib.h>\n");
-    if (needs_ctype) printf("#include <ctype.h>\n");
-    if (needs_time) printf("#include <time.h>\n");
-    if (needs_unistd) printf("#include <unistd.h>\n");
     if (needs_assert) printf("#include <assert.h>\n");
-    if (needs_fcntl) printf("#include <fcntl.h>\n");
-    if (needs_pthread) printf("#include <pthread.h>\n");
+    if (needs_complex) printf("#include <complex.h>\n");
+    if (needs_ctype) printf("#include <ctype.h>\n");
     if (needs_errno) printf("#include <errno.h>\n");
+    if (needs_fenv) printf("#include <fenv.h>\n");
+    if (needs_float) printf("#include <float.h>\n");
+    if (needs_inttypes) printf("#include <inttypes.h>\n");
+    if (needs_limits) printf("#include <limits.h>\n");
+    if (needs_locale) printf("#include <locale.h>\n");
+    if (needs_math) printf("#include <math.h>\n");
+    if (needs_setjmp) printf("#include <setjmp.h>\n");
     if (needs_signal) printf("#include <signal.h>\n");
+    if (needs_stdio) printf("#include <stdio.h>\n");
+    if (needs_stdlib) printf("#include <stdlib.h>\n");
+    if (needs_string) printf("#include <string.h>\n");
+    if (needs_threads) printf("#include <threads.h>\n");
+    if (needs_time) printf("#include <time.h>\n");
+    if (needs_wchar) printf("#include <wchar.h>\n");
+    if (needs_wctype) printf("#include <wctype.h>\n");
+    if (needs_tgmath) printf("#include <tgmath.h>\n");
+    if (needs_stddef) printf("#include <stddef.h>\n");
+    if (needs_stdbool) printf("#include <stdbool.h>\n");
+    if (needs_stdarg) printf("#include <stdarg.h>\n");
+    if (needs_stdalign) printf("#include <stdalign.h>\n");
+    if (needs_iso646) printf("#include <iso646.h>\n");
+
 
     printf("\n"); // Space between includes and code
 }
 
 
 /* Line 189 of yacc.c  */
-#line 128 "parser.tab.c"
+#line 157 "parser.tab.c"
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
@@ -151,19 +180,34 @@ void generate_includes() {
    /* Put the tokens into the symbol table, so that GDB and other debuggers
       know about them.  */
    enum yytokentype {
-     STRING = 258,
-     MATH = 259,
-     STDLIB = 260,
-     STDIO = 261,
-     CTYPE = 262,
-     TIME = 263,
-     UNISTD = 264,
-     ASSERT = 265,
-     FCNTL = 266,
-     PTHREAD = 267,
-     ERRNO = 268,
-     SIGNAL = 269,
-     IDENTIFIER = 270
+     ASSERT = 258,
+     COMPLEX = 259,
+     CTYPE = 260,
+     ERRNO = 261,
+     FENV = 262,
+     FCNTL = 263,
+     FLOAT = 264,
+     INTTYPES = 265,
+     LIMITS = 266,
+     LOCALE = 267,
+     MATH = 268,
+     SETJMP = 269,
+     SIGNAL = 270,
+     STDIO = 271,
+     STDLIB = 272,
+     STRING = 273,
+     THREADS = 274,
+     TIME = 275,
+     WCHAR = 276,
+     WCTYPE = 277,
+     TGMATH = 278,
+     STDDEF = 279,
+     STDBOOL = 280,
+     STDARG = 281,
+     STDALIGN = 282,
+     ISO646 = 283,
+     IDENTIFIER = 284,
+     UNISTD = 285
    };
 #endif
 
@@ -174,14 +218,14 @@ typedef union YYSTYPE
 {
 
 /* Line 214 of yacc.c  */
-#line 55 "parser.y"
+#line 84 "parser.y"
 
     char* strval;
 
 
 
 /* Line 214 of yacc.c  */
-#line 185 "parser.tab.c"
+#line 229 "parser.tab.c"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -193,7 +237,7 @@ typedef union YYSTYPE
 
 
 /* Line 264 of yacc.c  */
-#line 197 "parser.tab.c"
+#line 241 "parser.tab.c"
 
 #ifdef short
 # undef short
@@ -406,22 +450,22 @@ union yyalloc
 #endif
 
 /* YYFINAL -- State number of the termination state.  */
-#define YYFINAL  16
+#define YYFINAL  31
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   14
+#define YYLAST   29
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  16
+#define YYNTOKENS  31
 /* YYNNTS -- Number of nonterminals.  */
 #define YYNNTS  3
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  16
+#define YYNRULES  31
 /* YYNRULES -- Number of states.  */
-#define YYNSTATES  18
+#define YYNSTATES  33
 
 /* YYTRANSLATE(YYLEX) -- Bison symbol number corresponding to YYLEX.  */
 #define YYUNDEFTOK  2
-#define YYMAXUTOK   270
+#define YYMAXUTOK   285
 
 #define YYTRANSLATE(YYX)						\
   ((unsigned int) (YYX) <= YYMAXUTOK ? yytranslate[YYX] : YYUNDEFTOK)
@@ -456,7 +500,8 @@ static const yytype_uint8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     1,     2,     3,     4,
        5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
-      15
+      15,    16,    17,    18,    19,    20,    21,    22,    23,    24,
+      25,    26,    27,    28,    29,    30
 };
 
 #if YYDEBUG
@@ -465,23 +510,30 @@ static const yytype_uint8 yytranslate[] =
 static const yytype_uint8 yyprhs[] =
 {
        0,     0,     3,     5,     7,     9,    11,    13,    15,    17,
-      19,    21,    23,    25,    27,    29,    31
+      19,    21,    23,    25,    27,    29,    31,    33,    35,    37,
+      39,    41,    43,    45,    47,    49,    51,    53,    55,    57,
+      59,    61
 };
 
 /* YYRHS -- A `-1'-separated list of the rules' RHS.  */
 static const yytype_int8 yyrhs[] =
 {
-      17,     0,    -1,    18,    -1,     3,    -1,     4,    -1,     5,
-      -1,     6,    -1,     7,    -1,     8,    -1,     9,    -1,    10,
-      -1,    11,    -1,    12,    -1,    13,    -1,    14,    -1,    15,
-      -1,    18,    18,    -1
+      32,     0,    -1,    33,    -1,    18,    -1,    13,    -1,    17,
+      -1,    16,    -1,     5,    -1,    20,    -1,    30,    -1,     3,
+      -1,     8,    -1,     6,    -1,    15,    -1,     4,    -1,     7,
+      -1,     9,    -1,    10,    -1,    11,    -1,    12,    -1,    14,
+      -1,    19,    -1,    21,    -1,    22,    -1,    23,    -1,    24,
+      -1,    25,    -1,    26,    -1,    27,    -1,    28,    -1,    29,
+      -1,    33,    33,    -1
 };
 
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    69,    69,    76,    77,    78,    79,    80,    81,    82,
-      83,    84,    85,    86,    87,    88,    89
+       0,    98,    98,   105,   106,   107,   108,   109,   110,   111,
+     112,   113,   114,   115,   116,   117,   118,   119,   120,   121,
+     122,   123,   124,   125,   126,   127,   128,   129,   130,   131,
+     132,   133
 };
 #endif
 
@@ -490,9 +542,11 @@ static const yytype_uint8 yyrline[] =
    First, the terminals, then, starting at YYNTOKENS, nonterminals.  */
 static const char *const yytname[] =
 {
-  "$end", "error", "$undefined", "STRING", "MATH", "STDLIB", "STDIO",
-  "CTYPE", "TIME", "UNISTD", "ASSERT", "FCNTL", "PTHREAD", "ERRNO",
-  "SIGNAL", "IDENTIFIER", "$accept", "program", "function", 0
+  "$end", "error", "$undefined", "ASSERT", "COMPLEX", "CTYPE", "ERRNO",
+  "FENV", "FCNTL", "FLOAT", "INTTYPES", "LIMITS", "LOCALE", "MATH",
+  "SETJMP", "SIGNAL", "STDIO", "STDLIB", "STRING", "THREADS", "TIME",
+  "WCHAR", "WCTYPE", "TGMATH", "STDDEF", "STDBOOL", "STDARG", "STDALIGN",
+  "ISO646", "IDENTIFIER", "UNISTD", "$accept", "program", "function", 0
 };
 #endif
 
@@ -502,22 +556,28 @@ static const char *const yytname[] =
 static const yytype_uint16 yytoknum[] =
 {
        0,   256,   257,   258,   259,   260,   261,   262,   263,   264,
-     265,   266,   267,   268,   269,   270
+     265,   266,   267,   268,   269,   270,   271,   272,   273,   274,
+     275,   276,   277,   278,   279,   280,   281,   282,   283,   284,
+     285
 };
 # endif
 
 /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
 static const yytype_uint8 yyr1[] =
 {
-       0,    16,    17,    18,    18,    18,    18,    18,    18,    18,
-      18,    18,    18,    18,    18,    18,    18
+       0,    31,    32,    33,    33,    33,    33,    33,    33,    33,
+      33,    33,    33,    33,    33,    33,    33,    33,    33,    33,
+      33,    33,    33,    33,    33,    33,    33,    33,    33,    33,
+      33,    33
 };
 
 /* YYR2[YYN] -- Number of symbols composing right hand side of rule YYN.  */
 static const yytype_uint8 yyr2[] =
 {
        0,     2,     1,     1,     1,     1,     1,     1,     1,     1,
-       1,     1,     1,     1,     1,     1,     2
+       1,     1,     1,     1,     1,     1,     1,     1,     1,     1,
+       1,     1,     1,     1,     1,     1,     1,     1,     1,     1,
+       1,     2
 };
 
 /* YYDEFACT[STATE-NAME] -- Default rule to reduce with in state
@@ -525,14 +585,16 @@ static const yytype_uint8 yyr2[] =
    means the default is an error.  */
 static const yytype_uint8 yydefact[] =
 {
-       0,     3,     4,     5,     6,     7,     8,     9,    10,    11,
-      12,    13,    14,    15,     0,     2,     1,    16
+       0,    10,    14,     7,    12,    15,    11,    16,    17,    18,
+      19,     4,    20,    13,     6,     5,     3,    21,     8,    22,
+      23,    24,    25,    26,    27,    28,    29,    30,     9,     0,
+       2,     1,    31
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-      -1,    14,    17
+      -1,    29,    32
 };
 
 /* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
@@ -541,13 +603,15 @@ static const yytype_int8 yydefgoto[] =
 static const yytype_int8 yypact[] =
 {
       -3,    -4,    -4,    -4,    -4,    -4,    -4,    -4,    -4,    -4,
-      -4,    -4,    -4,    -4,    13,    -3,    -4,    -3
+      -4,    -4,    -4,    -4,    -4,    -4,    -4,    -4,    -4,    -4,
+      -4,    -4,    -4,    -4,    -4,    -4,    -4,    -4,    -4,    28,
+      -3,    -4,    -3
 };
 
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-      -4,    -4,    14
+      -4,    -4,    29
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]].  What to do in state STATE-NUM.  If
@@ -558,13 +622,15 @@ static const yytype_int8 yypgoto[] =
 static const yytype_uint8 yytable[] =
 {
        1,     2,     3,     4,     5,     6,     7,     8,     9,    10,
-      11,    12,    13,    16,    15
+      11,    12,    13,    14,    15,    16,    17,    18,    19,    20,
+      21,    22,    23,    24,    25,    26,    27,    28,    31,    30
 };
 
 static const yytype_uint8 yycheck[] =
 {
        3,     4,     5,     6,     7,     8,     9,    10,    11,    12,
-      13,    14,    15,     0,     0
+      13,    14,    15,    16,    17,    18,    19,    20,    21,    22,
+      23,    24,    25,    26,    27,    28,    29,    30,     0,     0
 };
 
 /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
@@ -572,7 +638,9 @@ static const yytype_uint8 yycheck[] =
 static const yytype_uint8 yystos[] =
 {
        0,     3,     4,     5,     6,     7,     8,     9,    10,    11,
-      12,    13,    14,    15,    17,    18,     0,    18
+      12,    13,    14,    15,    16,    17,    18,    19,    20,    21,
+      22,    23,    24,    25,    26,    27,    28,    29,    30,    32,
+      33,     0,    33
 };
 
 #define yyerrok		(yyerrstatus = 0)
@@ -1386,7 +1454,7 @@ yyreduce:
         case 2:
 
 /* Line 1455 of yacc.c  */
-#line 69 "parser.y"
+#line 98 "parser.y"
     { 
         generate_includes(); 
         printf("%s", output_buffer); // Print stored code
@@ -1396,98 +1464,203 @@ yyreduce:
   case 3:
 
 /* Line 1455 of yacc.c  */
-#line 76 "parser.y"
-    { needs_string = 1; append_to_buffer((yyvsp[(1) - (1)].strval));  free((yyvsp[(1) - (1)].strval)); ;}
+#line 105 "parser.y"
+    { needs_string = 1; append_to_buffer((yyvsp[(1) - (1)].strval)); free((yyvsp[(1) - (1)].strval)); ;}
     break;
 
   case 4:
 
 /* Line 1455 of yacc.c  */
-#line 77 "parser.y"
-    { needs_math = 1; append_to_buffer((yyvsp[(1) - (1)].strval));  free((yyvsp[(1) - (1)].strval)); ;}
+#line 106 "parser.y"
+    { needs_math = 1; append_to_buffer((yyvsp[(1) - (1)].strval)); free((yyvsp[(1) - (1)].strval)); ;}
     break;
 
   case 5:
 
 /* Line 1455 of yacc.c  */
-#line 78 "parser.y"
-    { needs_stdlib = 1; append_to_buffer((yyvsp[(1) - (1)].strval));  free((yyvsp[(1) - (1)].strval)); ;}
+#line 107 "parser.y"
+    { needs_stdlib = 1; append_to_buffer((yyvsp[(1) - (1)].strval)); free((yyvsp[(1) - (1)].strval)); ;}
     break;
 
   case 6:
 
 /* Line 1455 of yacc.c  */
-#line 79 "parser.y"
+#line 108 "parser.y"
     { needs_stdio = 1; append_to_buffer((yyvsp[(1) - (1)].strval)); free((yyvsp[(1) - (1)].strval)); ;}
     break;
 
   case 7:
 
 /* Line 1455 of yacc.c  */
-#line 80 "parser.y"
+#line 109 "parser.y"
     { needs_ctype = 1; append_to_buffer((yyvsp[(1) - (1)].strval)); free((yyvsp[(1) - (1)].strval)); ;}
     break;
 
   case 8:
 
 /* Line 1455 of yacc.c  */
-#line 81 "parser.y"
+#line 110 "parser.y"
     { needs_time = 1; append_to_buffer((yyvsp[(1) - (1)].strval)); free((yyvsp[(1) - (1)].strval)); ;}
     break;
 
   case 9:
 
 /* Line 1455 of yacc.c  */
-#line 82 "parser.y"
-    { needs_unistd = 1; append_to_buffer((yyvsp[(1) - (1)].strval));  free((yyvsp[(1) - (1)].strval)); ;}
+#line 111 "parser.y"
+    { needs_unistd = 1; append_to_buffer((yyvsp[(1) - (1)].strval)); free((yyvsp[(1) - (1)].strval)); ;}
     break;
 
   case 10:
 
 /* Line 1455 of yacc.c  */
-#line 83 "parser.y"
-    { needs_assert = 1; append_to_buffer((yyvsp[(1) - (1)].strval));  free((yyvsp[(1) - (1)].strval)); ;}
+#line 112 "parser.y"
+    { needs_assert = 1; append_to_buffer((yyvsp[(1) - (1)].strval)); free((yyvsp[(1) - (1)].strval)); ;}
     break;
 
   case 11:
 
 /* Line 1455 of yacc.c  */
-#line 84 "parser.y"
-    { needs_fcntl = 1; append_to_buffer((yyvsp[(1) - (1)].strval));  free((yyvsp[(1) - (1)].strval)); ;}
+#line 113 "parser.y"
+    { needs_fcntl = 1; append_to_buffer((yyvsp[(1) - (1)].strval)); free((yyvsp[(1) - (1)].strval)); ;}
     break;
 
   case 12:
 
 /* Line 1455 of yacc.c  */
-#line 85 "parser.y"
-    { needs_pthread = 1; append_to_buffer((yyvsp[(1) - (1)].strval));  free((yyvsp[(1) - (1)].strval)); ;}
+#line 114 "parser.y"
+    { needs_errno = 1; append_to_buffer((yyvsp[(1) - (1)].strval)); free((yyvsp[(1) - (1)].strval)); ;}
     break;
 
   case 13:
 
 /* Line 1455 of yacc.c  */
-#line 86 "parser.y"
-    { needs_errno = 1; append_to_buffer((yyvsp[(1) - (1)].strval)); free((yyvsp[(1) - (1)].strval)); ;}
+#line 115 "parser.y"
+    { needs_signal = 1; append_to_buffer((yyvsp[(1) - (1)].strval)); free((yyvsp[(1) - (1)].strval)); ;}
     break;
 
   case 14:
 
 /* Line 1455 of yacc.c  */
-#line 87 "parser.y"
-    { needs_signal = 1; append_to_buffer((yyvsp[(1) - (1)].strval));  free((yyvsp[(1) - (1)].strval)); ;}
+#line 116 "parser.y"
+    { needs_complex = 1; append_to_buffer((yyvsp[(1) - (1)].strval)); free((yyvsp[(1) - (1)].strval)); ;}
     break;
 
   case 15:
 
 /* Line 1455 of yacc.c  */
-#line 88 "parser.y"
-    { append_to_buffer((yyvsp[(1) - (1)].strval));  free((yyvsp[(1) - (1)].strval)); ;}
+#line 117 "parser.y"
+    { needs_fenv = 1; append_to_buffer((yyvsp[(1) - (1)].strval)); free((yyvsp[(1) - (1)].strval)); ;}
+    break;
+
+  case 16:
+
+/* Line 1455 of yacc.c  */
+#line 118 "parser.y"
+    { needs_float = 1; append_to_buffer((yyvsp[(1) - (1)].strval)); free((yyvsp[(1) - (1)].strval)); ;}
+    break;
+
+  case 17:
+
+/* Line 1455 of yacc.c  */
+#line 119 "parser.y"
+    { needs_inttypes = 1; append_to_buffer((yyvsp[(1) - (1)].strval)); free((yyvsp[(1) - (1)].strval)); ;}
+    break;
+
+  case 18:
+
+/* Line 1455 of yacc.c  */
+#line 120 "parser.y"
+    { needs_limits = 1; append_to_buffer((yyvsp[(1) - (1)].strval)); free((yyvsp[(1) - (1)].strval)); ;}
+    break;
+
+  case 19:
+
+/* Line 1455 of yacc.c  */
+#line 121 "parser.y"
+    { needs_locale = 1; append_to_buffer((yyvsp[(1) - (1)].strval)); free((yyvsp[(1) - (1)].strval)); ;}
+    break;
+
+  case 20:
+
+/* Line 1455 of yacc.c  */
+#line 122 "parser.y"
+    { needs_setjmp = 1; append_to_buffer((yyvsp[(1) - (1)].strval)); free((yyvsp[(1) - (1)].strval)); ;}
+    break;
+
+  case 21:
+
+/* Line 1455 of yacc.c  */
+#line 123 "parser.y"
+    { needs_threads = 1; append_to_buffer((yyvsp[(1) - (1)].strval)); free((yyvsp[(1) - (1)].strval)); ;}
+    break;
+
+  case 22:
+
+/* Line 1455 of yacc.c  */
+#line 124 "parser.y"
+    { needs_wchar = 1; append_to_buffer((yyvsp[(1) - (1)].strval)); free((yyvsp[(1) - (1)].strval)); ;}
+    break;
+
+  case 23:
+
+/* Line 1455 of yacc.c  */
+#line 125 "parser.y"
+    { needs_wctype = 1; append_to_buffer((yyvsp[(1) - (1)].strval)); free((yyvsp[(1) - (1)].strval)); ;}
+    break;
+
+  case 24:
+
+/* Line 1455 of yacc.c  */
+#line 126 "parser.y"
+    { needs_tgmath = 1; append_to_buffer((yyvsp[(1) - (1)].strval)); free((yyvsp[(1) - (1)].strval)); ;}
+    break;
+
+  case 25:
+
+/* Line 1455 of yacc.c  */
+#line 127 "parser.y"
+    { needs_stddef = 1; append_to_buffer((yyvsp[(1) - (1)].strval)); free((yyvsp[(1) - (1)].strval)); ;}
+    break;
+
+  case 26:
+
+/* Line 1455 of yacc.c  */
+#line 128 "parser.y"
+    { needs_stdbool = 1; append_to_buffer((yyvsp[(1) - (1)].strval)); free((yyvsp[(1) - (1)].strval)); ;}
+    break;
+
+  case 27:
+
+/* Line 1455 of yacc.c  */
+#line 129 "parser.y"
+    { needs_stdarg = 1; append_to_buffer((yyvsp[(1) - (1)].strval)); free((yyvsp[(1) - (1)].strval)); ;}
+    break;
+
+  case 28:
+
+/* Line 1455 of yacc.c  */
+#line 130 "parser.y"
+    { needs_stdalign = 1; append_to_buffer((yyvsp[(1) - (1)].strval)); free((yyvsp[(1) - (1)].strval)); ;}
+    break;
+
+  case 29:
+
+/* Line 1455 of yacc.c  */
+#line 131 "parser.y"
+    { needs_iso646 = 1; append_to_buffer((yyvsp[(1) - (1)].strval)); free((yyvsp[(1) - (1)].strval)); ;}
+    break;
+
+  case 30:
+
+/* Line 1455 of yacc.c  */
+#line 132 "parser.y"
+    { append_to_buffer((yyvsp[(1) - (1)].strval)); free((yyvsp[(1) - (1)].strval)); ;}
     break;
 
 
 
 /* Line 1455 of yacc.c  */
-#line 1491 "parser.tab.c"
+#line 1664 "parser.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -1699,7 +1872,7 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 92 "parser.y"
+#line 136 "parser.y"
 
 
 int main() {
