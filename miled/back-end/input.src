@@ -1,3 +1,4 @@
+
 function getUsers(request:Request):bool {
     // Fetch users from DB
     return true;
@@ -5,6 +6,7 @@ function getUsers(request:Request):bool {
 
 function getUser(request:Request, id:int):bool {
     // Fetch a single user
+    
     return true;
 }
 
@@ -16,5 +18,5 @@ function createUser(request:Request, data:UserData):bool {
 /*function server ():void{
     Route.get("/get-users", getUsers);
     Route.get("/get-user", getUser);
-    Route.post("/create-user", createUser)
+    Route.post("/create-user", createUser);
 }*/
