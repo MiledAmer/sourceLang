@@ -5,18 +5,7 @@
 %}
 
 %%
-"strlen"|"strcpy"|"strcat"      { return STRING; }
-"sin"|"cos"|"sqrt"              { return MATH;  }
-"malloc"|"free"|"atoi"          { return  STDLIB;  }
-"printf"|"scanf"                { return STDIO; }
-"isalpha"|"isdigit"|"toupper"|"tolower" {return CTYPE; }
-"time"|"localtime"|"strftime"   { return TIME; }
-"fork"|"exec"|"getpid"          { return UNISTD;  }
-"assert"                        { return ASSERT;  }
-"open"|"fcntl"                  { return FCNTL;  }
-"pthread_create"|"pthread_join" { return PTHREAD; }
-"errno"                         { return ERRNO;  }
-"signal"|"raise"                { return SIGNAL; }
+
 "component"                     { return COMPONENT; }
 "render"                        { return RENDER; }
 "return"                        { return RETURN; }

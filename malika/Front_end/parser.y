@@ -23,7 +23,6 @@ int found = 0;
 %token COMPONENT LBRACE RBRACE LPAREN RPAREN LT GT SLASH COMMA COLON
 %token <strval> IDENTIFIER RENDER RETURN 
 %type <strval> element parameters typed_param_list typed_param function html_content html_balise_open html_balise_close html_inner
-%token STRING MATH STDLIB STDIO CTYPE TIME UNISTD ASSERT FCNTL PTHREAD ERRNO SIGNAL
 %start program
 
 %%
