@@ -1,6 +1,6 @@
 
 function getUsers(request:Request):bool {
-    // Fetch users from DB
+    int x =5;
     return true;
 }
 
