@@ -51,7 +51,19 @@
      COLON = 267,
      IDENTIFIER = 268,
      RENDER = 269,
-     RETURN = 270
+     RETURN = 270,
+     STRING = 271,
+     MATH = 272,
+     STDLIB = 273,
+     STDIO = 274,
+     CTYPE = 275,
+     TIME = 276,
+     UNISTD = 277,
+     ASSERT = 278,
+     FCNTL = 279,
+     PTHREAD = 280,
+     ERRNO = 281,
+     SIGNAL = 282
    };
 #endif
 
@@ -62,7 +74,7 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 16 "parser.y"
+#line 17 "parser.y"
 
     int intval;   // For numeric values
     char* strval; // For strings like IDENTIFIER
@@ -70,7 +82,7 @@ typedef union YYSTYPE
 
 
 /* Line 1676 of yacc.c  */
-#line 74 "parser.tab.h"
+#line 86 "parser.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

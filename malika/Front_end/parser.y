@@ -11,6 +11,7 @@ char identifiers[100][50];      // Stocke les identifiants rencontrés
 char types[100][50];            // Stocke les types rencontrés
 int id_count = 0;               // Compteur des identifiants
 int found = 0;
+
 %}
 
 %union {
@@ -22,7 +23,7 @@ int found = 0;
 %token COMPONENT LBRACE RBRACE LPAREN RPAREN LT GT SLASH COMMA COLON
 %token <strval> IDENTIFIER RENDER RETURN 
 %type <strval> element parameters typed_param_list typed_param function html_content html_balise_open html_balise_close html_inner
-
+%token STRING MATH STDLIB STDIO CTYPE TIME UNISTD ASSERT FCNTL PTHREAD ERRNO SIGNAL
 %start program
 
 %%
@@ -146,43 +147,14 @@ html_balise_close:
     ;
 
 html_inner:
-    IDENTIFIER
-    { 
-        found = 0;
-        char format[10] = "%s";  // Format par défaut pour string
-        // Vérifier si l'identifiant existe dans le tableau des identifiants
-        for (int i = 0; i < id_count; i++) {
-            if (strcmp(identifiers[i], $1) == 0) {
-                found = 1;
-                break;  // Si trouvé, on peut arrêter la boucle
-            }
-        }
-
-        // Si l'identifiant n'est pas trouvé, afficher une erreur
-        if (found==0) {
-            printf("//Erreur : L'identifiant n'est pas un paramètre.");
-            yyerror("Erreur : L'identifiant n'est pas un paramètre.");
-            YYERROR;
-        } else {
-            // L'identifiant est trouvé, maintenant vérifier son type
-            for (int i = 0; i < id_count; i++) { 
-                if (strcmp(identifiers[i], $1) == 0) {
-                    if (strcmp(types[i], "int") == 0) {
-                        strcpy(format, "%d");
-                    } else if (strcmp(types[i], "float") == 0) {
-                        strcpy(format, "%f");
-                    }
-                    break;  // Une fois trouvé, on peut arrêter la boucle
-                }
-            }
-        }
-
-        // Retourner le bon placeholder (format)
-        $$ = strdup(format);
+    IDENTIFIER{
+        char* tmp = malloc(strlen($1) + 1); 
+        sprintf(tmp, "%s", $1);
         free($1);
-
+        $$ = tmp;
     }
-    | LBRACE IDENTIFIER RBRACE 
+    |
+    LBRACE IDENTIFIER RBRACE 
     { 
         found = 0;
         char format[10] = "%s";  // Format par défaut pour string
@@ -230,16 +202,17 @@ html_inner:
 void yyerror(const char *s) {
     fprintf(stderr, "Error: %s\n", s);
     exit(1);  // Or set a global error flag
-}
+} 
+
 
 int main() {
     yydebug = 1;
-    int result = yyparse();
     
+    int result = yyparse();
     if (result == 0) {
         return 0;
     } else {
         printf("Parsing failed\n");
     }
     return 0;
-}   
+}  

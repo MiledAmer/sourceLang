@@ -1,4 +1,4 @@
-component UserProfile (name:float) {
+component UserProfile (name:int) {
     render() {
     return <div>
         <h1>name</h1>

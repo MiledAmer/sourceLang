@@ -1,3 +1,3 @@
-void renderUserProfile(float name) {
-	printf("<div> <h1> %f </h1> </div>", name);
+void renderUserProfile(int name) {
+	printf("<div> <h1> name </h1> </div>", name);
 }
