@@ -1,0 +1,7 @@
+#include "server.h"
+
+main(args[]){
+    Route.get("/", function (){
+        
+    })
+}
