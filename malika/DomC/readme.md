@@ -1,0 +1,3 @@
+gcc generer_html.c -o generate_html                                                                                        
+.\generate_html.exe                       //pour generer code html                                                                                   
+emcc compteur.c -o compteur.js -s EXPORTED_FUNCTIONS=_main,_incrementer_compteur,_get_compteur -s EXPORTED_RUNTIME_METHODS=ccall,cwrap //pour utiliser Dom
