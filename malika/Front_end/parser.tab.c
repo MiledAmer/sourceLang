@@ -614,7 +614,7 @@ static const yytype_int8 yyrhs[] =
 static const yytype_uint16 yyrline[] =
 {
        0,   199,   199,   213,   224,   225,   229,   231,   242,   260,
-     261,   282,   298,   309,   319,   329,   336,   375
+     261,   282,   298,   309,   319,   329,   336,   373
 };
 #endif
 
@@ -1726,11 +1726,10 @@ yyreduce:
         for (int i = 0; i < id_count; i++) {
             if (strcmp(identifiers[i], (yyvsp[(2) - (3)].strval)) == 0) {
                 found = 1;
-                break;  // Si trouvé, on peut arrêter la boucle
+                break;
             }
         }
 
-        // Si l'identifiant n'est pas trouvé, afficher une erreur
         if (found==0) {
             char error_msg[100];
             sprintf(error_msg, "//Erreur : L'identifiant %s n'est pas un paramètre.", (yyvsp[(2) - (3)].strval));
@@ -1746,22 +1745,21 @@ yyreduce:
                     } else if (strcmp(types[i], "float") == 0) {
                         strcpy(format, "%f");
                     }
-                    break;  // Une fois trouvé, on peut arrêter la boucle
+                    break;
                 }
             }
         }
 
-        // Retourner le bon placeholder (format)
+        // Return just the format specifier, not the variable name
         (yyval.strval) = strdup(format);
         free((yyvsp[(2) - (3)].strval));
-
     ;}
     break;
 
   case 17:
 
 /* Line 1455 of yacc.c  */
-#line 375 "parser.y"
+#line 373 "parser.y"
     { 
         (yyval.strval) = strdup("");
     ;}
@@ -1770,7 +1768,7 @@ yyreduce:
 
 
 /* Line 1455 of yacc.c  */
-#line 1774 "parser.tab.c"
+#line 1772 "parser.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -1982,7 +1980,7 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 381 "parser.y"
+#line 379 "parser.y"
 
 
 void yyerror(const char *s) {

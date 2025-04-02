@@ -341,11 +341,10 @@ html_inner:
         for (int i = 0; i < id_count; i++) {
             if (strcmp(identifiers[i], $2) == 0) {
                 found = 1;
-                break;  // Si trouvé, on peut arrêter la boucle
+                break;
             }
         }
 
-        // Si l'identifiant n'est pas trouvé, afficher une erreur
         if (found==0) {
             char error_msg[100];
             sprintf(error_msg, "//Erreur : L'identifiant %s n'est pas un paramètre.", $2);
@@ -361,15 +360,14 @@ html_inner:
                     } else if (strcmp(types[i], "float") == 0) {
                         strcpy(format, "%f");
                     }
-                    break;  // Une fois trouvé, on peut arrêter la boucle
+                    break;
                 }
             }
         }
 
-        // Retourner le bon placeholder (format)
+        // Return just the format specifier, not the variable name
         $$ = strdup(format);
         free($2);
-
     }
     | /* empty */
     { 
