@@ -83,10 +83,178 @@ char types[100][50];            // Stocke les types rencontrés
 int id_count = 0;               // Compteur des identifiants
 int found = 0;
 
+char output_buffer[10000]; // Buffer pour le code généré
+int buffer_index = 0; // Index pour le buffer
+
+int needs_assert = 0;
+int needs_complex = 0;
+int needs_ctype = 0;
+int needs_errno = 0;
+int needs_fenv = 0;
+int needs_float = 0;
+int needs_inttypes = 0;
+int needs_limits = 0;
+int needs_locale = 0;
+int needs_math = 0;
+int needs_setjmp = 0;
+int needs_signal = 0;
+int needs_stdio = 0;
+int needs_stdlib = 0;
+int needs_string = 0;
+int needs_time = 0;
+int needs_wchar = 0;
+int needs_wctype = 0;
+int needs_tgmath = 0;
+int needs_stddef = 0;
+int needs_stdbool = 0;
+int needs_stdarg = 0;
+int needs_stdalign = 0;
+int needs_iso646 = 0;
+int needs_unistd = 0;
+int needs_fcntl = 0;
+int needs_threads = 0;
+
+// Fonction pour ajouter du texte au buffer
+void append_to_buffer(const char *text) {
+    snprintf(output_buffer + buffer_index, sizeof(output_buffer) - buffer_index, "%s", text);
+    buffer_index += strlen(text);
+}
+
+// Fonction pour générer les includes
+void generate_includes() {
+    printf("/* Includes automatiques */\n");
+
+    if (needs_assert) printf("#include <assert.h>\n");
+    if (needs_complex) printf("#include <complex.h>\n");
+    if (needs_ctype) printf("#include <ctype.h>\n");
+    if (needs_errno) printf("#include <errno.h>\n");
+    if (needs_fenv) printf("#include <fenv.h>\n");
+    if (needs_float) printf("#include <float.h>\n");
+    if (needs_inttypes) printf("#include <inttypes.h>\n");
+    if (needs_limits) printf("#include <limits.h>\n");
+    if (needs_locale) printf("#include <locale.h>\n");
+    if (needs_math) printf("#include <math.h>\n");
+    if (needs_setjmp) printf("#include <setjmp.h>\n");
+    if (needs_signal) printf("#include <signal.h>\n");
+    if (needs_stdio) printf("#include <stdio.h>\n");
+    if (needs_stdlib) printf("#include <stdlib.h>\n");
+    if (needs_string) printf("#include <string.h>\n");
+    if (needs_threads) printf("#include <threads.h>\n");
+    if (needs_time) printf("#include <time.h>\n");
+    if (needs_wchar) printf("#include <wchar.h>\n");
+    if (needs_wctype) printf("#include <wctype.h>\n");
+    if (needs_tgmath) printf("#include <tgmath.h>\n");
+    if (needs_stddef) printf("#include <stddef.h>\n");
+    if (needs_stdbool) printf("#include <stdbool.h>\n");
+    if (needs_stdarg) printf("#include <stdarg.h>\n");
+    if (needs_stdalign) printf("#include <stdalign.h>\n");
+    if (needs_iso646) printf("#include <iso646.h>\n");
+
+
+    printf("\n"); // Space between includes and code
+}
+
+// Analyse des dépendances en fonction du contenu des identifiants et types
+void analyze_dependencies() {
+    // Dépendances essentielles pour le fonctionnement de base
+    needs_stdio = 1;  // Pour printf
+    needs_stdlib = 1; // Pour malloc/free
+    needs_string = 1; // Pour manipulations de chaînes
+    
+    // Analyse des types pour détecter des dépendances spécifiques
+    for (int i = 0; i < id_count; i++) {
+        if (strcmp(types[i], "float") == 0 || strcmp(types[i], "double") == 0) {
+            needs_math = 1;
+        }
+        else if (strcmp(types[i], "complex") == 0) {
+            needs_complex = 1;
+        }
+        else if (strcmp(types[i], "bool") == 0) {
+            needs_stdbool = 1;
+        }
+        else if (strcmp(types[i], "wchar_t") == 0) {
+            needs_wchar = 1;
+        }
+        else if (strstr(types[i], "time") != NULL) {
+            needs_time = 1;
+        }
+        else if (strstr(types[i], "int") != NULL) {
+            needs_limits = 1; // Pour les limites de int
+        }
+    }
+    
+    // Analyse du contenu du buffer pour détecter d'autres dépendances
+    if (strstr(output_buffer, "isalpha") != NULL || 
+        strstr(output_buffer, "isdigit") != NULL || 
+        strstr(output_buffer, "tolower") != NULL) {
+        needs_ctype = 1;
+    }
+    
+    if (strstr(output_buffer, "malloc") != NULL || 
+        strstr(output_buffer, "free") != NULL || 
+        strstr(output_buffer, "exit") != NULL) {
+        needs_stdlib = 1;
+    }
+    
+    if (strstr(output_buffer, "sin") != NULL || 
+        strstr(output_buffer, "cos") != NULL || 
+        strstr(output_buffer, "sqrt") != NULL) {
+        needs_math = 1;
+    }
+    
+    if (strstr(output_buffer, "printf") != NULL || 
+        strstr(output_buffer, "scanf") != NULL || 
+        strstr(output_buffer, "fprintf") != NULL) {
+        needs_stdio = 1;
+    }
+    
+    if (strstr(output_buffer, "strcpy") != NULL || 
+        strstr(output_buffer, "strlen") != NULL || 
+        strstr(output_buffer, "strcat") != NULL) {
+        needs_string = 1;
+    }
+    
+    if (strstr(output_buffer, "assert") != NULL) {
+        needs_assert = 1;
+    }
+    
+    if (strstr(output_buffer, "errno") != NULL) {
+        needs_errno = 1;
+    }
+    
+    if (strstr(output_buffer, "setjmp") != NULL || 
+        strstr(output_buffer, "longjmp") != NULL) {
+        needs_setjmp = 1;
+    }
+    
+    if (strstr(output_buffer, "signal") != NULL) {
+        needs_signal = 1;
+    }
+    
+    if (strstr(output_buffer, "open") != NULL || 
+        strstr(output_buffer, "close") != NULL || 
+        strstr(output_buffer, "read") != NULL || 
+        strstr(output_buffer, "write") != NULL) {
+        needs_unistd = 1;
+    }
+    
+    if (strstr(output_buffer, "O_RDONLY") != NULL || 
+        strstr(output_buffer, "O_WRONLY") != NULL || 
+        strstr(output_buffer, "O_CREAT") != NULL) {
+        needs_fcntl = 1;
+    }
+    
+    if (strstr(output_buffer, "thrd_") != NULL || 
+        strstr(output_buffer, "mtx_") != NULL || 
+        strstr(output_buffer, "cnd_") != NULL) {
+        needs_threads = 1;
+    }
+}
+
 
 
 /* Line 189 of yacc.c  */
-#line 90 "parser.tab.c"
+#line 258 "parser.tab.c"
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
@@ -136,7 +304,7 @@ typedef union YYSTYPE
 {
 
 /* Line 214 of yacc.c  */
-#line 17 "parser.y"
+#line 185 "parser.y"
 
     int intval;   // For numeric values
     char* strval; // For strings like IDENTIFIER
@@ -144,7 +312,7 @@ typedef union YYSTYPE
 
 
 /* Line 214 of yacc.c  */
-#line 148 "parser.tab.c"
+#line 316 "parser.tab.c"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -156,7 +324,7 @@ typedef union YYSTYPE
 
 
 /* Line 264 of yacc.c  */
-#line 160 "parser.tab.c"
+#line 328 "parser.tab.c"
 
 #ifdef short
 # undef short
@@ -443,10 +611,10 @@ static const yytype_int8 yyrhs[] =
 };
 
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
-static const yytype_uint8 yyrline[] =
+static const yytype_uint16 yyrline[] =
 {
-       0,    31,    31,    35,    44,    45,    49,    51,    62,    80,
-      81,   102,   118,   129,   139,   149,   156,   193
+       0,   199,   199,   213,   224,   225,   229,   231,   242,   260,
+     261,   282,   298,   309,   319,   329,   336,   375
 };
 #endif
 
@@ -1365,13 +1533,31 @@ yyreduce:
   YY_REDUCE_PRINT (yyn);
   switch (yyn)
     {
-        case 3:
+        case 2:
 
 /* Line 1455 of yacc.c  */
-#line 36 "parser.y"
+#line 200 "parser.y"
+    {
+          // Analyser les dépendances après le parsing
+          analyze_dependencies();
+          
+          // Générer les includes en premier
+          generate_includes();
+          
+          // Afficher le code généré
+          printf("%s", output_buffer);
+      ;}
+    break;
+
+  case 3:
+
+/* Line 1455 of yacc.c  */
+#line 214 "parser.y"
     { 
           /* $2 is the component name and $4 is the parameter list */
-          printf("void render%s(%s) {%s}\n", (yyvsp[(2) - (8)].strval), (yyvsp[(4) - (8)].strval),(yyvsp[(7) - (8)].strval));
+          char buffer[1000];
+          sprintf(buffer, "void render%s(%s) {%s}\n", (yyvsp[(2) - (8)].strval), (yyvsp[(4) - (8)].strval), (yyvsp[(7) - (8)].strval));
+          append_to_buffer(buffer);
           free((yyvsp[(4) - (8)].strval));
       ;}
     break;
@@ -1379,28 +1565,28 @@ yyreduce:
   case 4:
 
 /* Line 1455 of yacc.c  */
-#line 44 "parser.y"
+#line 224 "parser.y"
     { (yyval.strval) = strdup(""); ;}
     break;
 
   case 5:
 
 /* Line 1455 of yacc.c  */
-#line 45 "parser.y"
+#line 225 "parser.y"
     { (yyval.strval) = (yyvsp[(1) - (1)].strval); ;}
     break;
 
   case 6:
 
 /* Line 1455 of yacc.c  */
-#line 50 "parser.y"
+#line 230 "parser.y"
     { (yyval.strval) = (yyvsp[(1) - (1)].strval); ;}
     break;
 
   case 7:
 
 /* Line 1455 of yacc.c  */
-#line 52 "parser.y"
+#line 232 "parser.y"
     {
           /* Concatenate the previous list with ", " and the new parameter */
           char* tmp = malloc(strlen((yyvsp[(1) - (3)].strval)) + strlen((yyvsp[(3) - (3)].strval)) + 3); // extra space for comma, space, and '\0'
@@ -1413,7 +1599,7 @@ yyreduce:
   case 8:
 
 /* Line 1455 of yacc.c  */
-#line 63 "parser.y"
+#line 243 "parser.y"
     {
         
         strcpy(identifiers[id_count], (yyvsp[(1) - (3)].strval));
@@ -1433,14 +1619,14 @@ yyreduce:
   case 9:
 
 /* Line 1455 of yacc.c  */
-#line 80 "parser.y"
+#line 260 "parser.y"
     { (yyval.strval) = strdup(""); ;}
     break;
 
   case 10:
 
 /* Line 1455 of yacc.c  */
-#line 82 "parser.y"
+#line 262 "parser.y"
     { 
         char* tmp = malloc(strlen((yyvsp[(6) - (7)].strval)) + 50); // Allouer mémoire pour printf
         sprintf(tmp, "\n\tprintf(\"%s\"", (yyvsp[(6) - (7)].strval));
@@ -1463,7 +1649,7 @@ yyreduce:
   case 11:
 
 /* Line 1455 of yacc.c  */
-#line 103 "parser.y"
+#line 283 "parser.y"
     { 
         char* tmp = malloc(strlen((yyvsp[(1) - (3)].strval)) + strlen((yyvsp[(2) - (3)].strval)) + strlen((yyvsp[(3) - (3)].strval)) + 1);
         if (strcmp((yyvsp[(1) - (3)].strval), (yyvsp[(3) - (3)].strval)) == 0){
@@ -1483,7 +1669,7 @@ yyreduce:
   case 12:
 
 /* Line 1455 of yacc.c  */
-#line 119 "parser.y"
+#line 299 "parser.y"
     { 
         char* tmp = malloc( strlen((yyvsp[(1) - (1)].strval)) + 5);
         sprintf(tmp, "%s", (yyvsp[(1) - (1)].strval));
@@ -1496,7 +1682,7 @@ yyreduce:
   case 13:
 
 /* Line 1455 of yacc.c  */
-#line 130 "parser.y"
+#line 310 "parser.y"
     {
         char* tmp = malloc(strlen((yyvsp[(2) - (3)].strval)) + 3); // "<tag>"
         sprintf(tmp, "%s", (yyvsp[(2) - (3)].strval));
@@ -1508,7 +1694,7 @@ yyreduce:
   case 14:
 
 /* Line 1455 of yacc.c  */
-#line 140 "parser.y"
+#line 320 "parser.y"
     {
         char* tmp = malloc(strlen((yyvsp[(3) - (4)].strval)) + 4); // "</tag>"
         sprintf(tmp, "%s", (yyvsp[(3) - (4)].strval));
@@ -1520,7 +1706,7 @@ yyreduce:
   case 15:
 
 /* Line 1455 of yacc.c  */
-#line 149 "parser.y"
+#line 329 "parser.y"
     {
         char* tmp = malloc(strlen((yyvsp[(1) - (1)].strval)) + 1); 
         sprintf(tmp, "%s", (yyvsp[(1) - (1)].strval));
@@ -1532,7 +1718,7 @@ yyreduce:
   case 16:
 
 /* Line 1455 of yacc.c  */
-#line 157 "parser.y"
+#line 337 "parser.y"
     { 
         found = 0;
         char format[10] = "%s";  // Format par défaut pour string
@@ -1546,7 +1732,9 @@ yyreduce:
 
         // Si l'identifiant n'est pas trouvé, afficher une erreur
         if (found==0) {
-            printf("//Erreur : L'identifiant n'est pas un paramètre.");
+            char error_msg[100];
+            sprintf(error_msg, "//Erreur : L'identifiant %s n'est pas un paramètre.", (yyvsp[(2) - (3)].strval));
+            append_to_buffer(error_msg);
             yyerror("Erreur : L'identifiant n'est pas un paramètre.");
             YYERROR;
         } else {
@@ -1573,7 +1761,7 @@ yyreduce:
   case 17:
 
 /* Line 1455 of yacc.c  */
-#line 193 "parser.y"
+#line 375 "parser.y"
     { 
         (yyval.strval) = strdup("");
     ;}
@@ -1582,7 +1770,7 @@ yyreduce:
 
 
 /* Line 1455 of yacc.c  */
-#line 1586 "parser.tab.c"
+#line 1774 "parser.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -1794,7 +1982,7 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 199 "parser.y"
+#line 381 "parser.y"
 
 
 void yyerror(const char *s) {

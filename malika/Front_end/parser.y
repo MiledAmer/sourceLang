@@ -12,6 +12,174 @@ char types[100][50];            // Stocke les types rencontrés
 int id_count = 0;               // Compteur des identifiants
 int found = 0;
 
+char output_buffer[10000]; // Buffer pour le code généré
+int buffer_index = 0; // Index pour le buffer
+
+int needs_assert = 0;
+int needs_complex = 0;
+int needs_ctype = 0;
+int needs_errno = 0;
+int needs_fenv = 0;
+int needs_float = 0;
+int needs_inttypes = 0;
+int needs_limits = 0;
+int needs_locale = 0;
+int needs_math = 0;
+int needs_setjmp = 0;
+int needs_signal = 0;
+int needs_stdio = 0;
+int needs_stdlib = 0;
+int needs_string = 0;
+int needs_time = 0;
+int needs_wchar = 0;
+int needs_wctype = 0;
+int needs_tgmath = 0;
+int needs_stddef = 0;
+int needs_stdbool = 0;
+int needs_stdarg = 0;
+int needs_stdalign = 0;
+int needs_iso646 = 0;
+int needs_unistd = 0;
+int needs_fcntl = 0;
+int needs_threads = 0;
+
+// Fonction pour ajouter du texte au buffer
+void append_to_buffer(const char *text) {
+    snprintf(output_buffer + buffer_index, sizeof(output_buffer) - buffer_index, "%s", text);
+    buffer_index += strlen(text);
+}
+
+// Fonction pour générer les includes
+void generate_includes() {
+    printf("/* Includes automatiques */\n");
+
+    if (needs_assert) printf("#include <assert.h>\n");
+    if (needs_complex) printf("#include <complex.h>\n");
+    if (needs_ctype) printf("#include <ctype.h>\n");
+    if (needs_errno) printf("#include <errno.h>\n");
+    if (needs_fenv) printf("#include <fenv.h>\n");
+    if (needs_float) printf("#include <float.h>\n");
+    if (needs_inttypes) printf("#include <inttypes.h>\n");
+    if (needs_limits) printf("#include <limits.h>\n");
+    if (needs_locale) printf("#include <locale.h>\n");
+    if (needs_math) printf("#include <math.h>\n");
+    if (needs_setjmp) printf("#include <setjmp.h>\n");
+    if (needs_signal) printf("#include <signal.h>\n");
+    if (needs_stdio) printf("#include <stdio.h>\n");
+    if (needs_stdlib) printf("#include <stdlib.h>\n");
+    if (needs_string) printf("#include <string.h>\n");
+    if (needs_threads) printf("#include <threads.h>\n");
+    if (needs_time) printf("#include <time.h>\n");
+    if (needs_wchar) printf("#include <wchar.h>\n");
+    if (needs_wctype) printf("#include <wctype.h>\n");
+    if (needs_tgmath) printf("#include <tgmath.h>\n");
+    if (needs_stddef) printf("#include <stddef.h>\n");
+    if (needs_stdbool) printf("#include <stdbool.h>\n");
+    if (needs_stdarg) printf("#include <stdarg.h>\n");
+    if (needs_stdalign) printf("#include <stdalign.h>\n");
+    if (needs_iso646) printf("#include <iso646.h>\n");
+
+
+    printf("\n"); // Space between includes and code
+}
+
+// Analyse des dépendances en fonction du contenu des identifiants et types
+void analyze_dependencies() {
+    // Dépendances essentielles pour le fonctionnement de base
+    needs_stdio = 1;  // Pour printf
+    needs_stdlib = 1; // Pour malloc/free
+    needs_string = 1; // Pour manipulations de chaînes
+    
+    // Analyse des types pour détecter des dépendances spécifiques
+    for (int i = 0; i < id_count; i++) {
+        if (strcmp(types[i], "float") == 0 || strcmp(types[i], "double") == 0) {
+            needs_math = 1;
+        }
+        else if (strcmp(types[i], "complex") == 0) {
+            needs_complex = 1;
+        }
+        else if (strcmp(types[i], "bool") == 0) {
+            needs_stdbool = 1;
+        }
+        else if (strcmp(types[i], "wchar_t") == 0) {
+            needs_wchar = 1;
+        }
+        else if (strstr(types[i], "time") != NULL) {
+            needs_time = 1;
+        }
+        else if (strstr(types[i], "int") != NULL) {
+            needs_limits = 1; // Pour les limites de int
+        }
+    }
+    
+    // Analyse du contenu du buffer pour détecter d'autres dépendances
+    if (strstr(output_buffer, "isalpha") != NULL || 
+        strstr(output_buffer, "isdigit") != NULL || 
+        strstr(output_buffer, "tolower") != NULL) {
+        needs_ctype = 1;
+    }
+    
+    if (strstr(output_buffer, "malloc") != NULL || 
+        strstr(output_buffer, "free") != NULL || 
+        strstr(output_buffer, "exit") != NULL) {
+        needs_stdlib = 1;
+    }
+    
+    if (strstr(output_buffer, "sin") != NULL || 
+        strstr(output_buffer, "cos") != NULL || 
+        strstr(output_buffer, "sqrt") != NULL) {
+        needs_math = 1;
+    }
+    
+    if (strstr(output_buffer, "printf") != NULL || 
+        strstr(output_buffer, "scanf") != NULL || 
+        strstr(output_buffer, "fprintf") != NULL) {
+        needs_stdio = 1;
+    }
+    
+    if (strstr(output_buffer, "strcpy") != NULL || 
+        strstr(output_buffer, "strlen") != NULL || 
+        strstr(output_buffer, "strcat") != NULL) {
+        needs_string = 1;
+    }
+    
+    if (strstr(output_buffer, "assert") != NULL) {
+        needs_assert = 1;
+    }
+    
+    if (strstr(output_buffer, "errno") != NULL) {
+        needs_errno = 1;
+    }
+    
+    if (strstr(output_buffer, "setjmp") != NULL || 
+        strstr(output_buffer, "longjmp") != NULL) {
+        needs_setjmp = 1;
+    }
+    
+    if (strstr(output_buffer, "signal") != NULL) {
+        needs_signal = 1;
+    }
+    
+    if (strstr(output_buffer, "open") != NULL || 
+        strstr(output_buffer, "close") != NULL || 
+        strstr(output_buffer, "read") != NULL || 
+        strstr(output_buffer, "write") != NULL) {
+        needs_unistd = 1;
+    }
+    
+    if (strstr(output_buffer, "O_RDONLY") != NULL || 
+        strstr(output_buffer, "O_WRONLY") != NULL || 
+        strstr(output_buffer, "O_CREAT") != NULL) {
+        needs_fcntl = 1;
+    }
+    
+    if (strstr(output_buffer, "thrd_") != NULL || 
+        strstr(output_buffer, "mtx_") != NULL || 
+        strstr(output_buffer, "cnd_") != NULL) {
+        needs_threads = 1;
+    }
+}
+
 %}
 
 %union {
@@ -21,7 +189,7 @@ int found = 0;
 
 
 %token COMPONENT LBRACE RBRACE LPAREN RPAREN LT GT SLASH COMMA COLON
-%token <strval> IDENTIFIER RENDER RETURN 
+%token <strval> IDENTIFIER RENDER RETURN
 %type <strval> element parameters typed_param_list typed_param function html_content html_balise_open html_balise_close html_inner
 %start program
 
@@ -29,13 +197,25 @@ int found = 0;
 
 program:
       element
+      {
+          // Analyser les dépendances après le parsing
+          analyze_dependencies();
+          
+          // Générer les includes en premier
+          generate_includes();
+          
+          // Afficher le code généré
+          printf("%s", output_buffer);
+      }
     ;
 
 element:
       COMPONENT IDENTIFIER LPAREN parameters RPAREN LBRACE function RBRACE
       { 
           /* $2 is the component name and $4 is the parameter list */
-          printf("void render%s(%s) {%s}\n", $2, $4,$7);
+          char buffer[1000];
+          sprintf(buffer, "void render%s(%s) {%s}\n", $2, $4, $7);
+          append_to_buffer(buffer);
           free($4);
       }
     ;
@@ -167,7 +347,9 @@ html_inner:
 
         // Si l'identifiant n'est pas trouvé, afficher une erreur
         if (found==0) {
-            printf("//Erreur : L'identifiant n'est pas un paramètre.");
+            char error_msg[100];
+            sprintf(error_msg, "//Erreur : L'identifiant %s n'est pas un paramètre.", $2);
+            append_to_buffer(error_msg);
             yyerror("Erreur : L'identifiant n'est pas un paramètre.");
             YYERROR;
         } else {
