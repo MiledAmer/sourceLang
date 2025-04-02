@@ -190,7 +190,7 @@ void analyze_dependencies() {
 
 %token COMPONENT LBRACE RBRACE LPAREN RPAREN LT GT SLASH COMMA COLON
 %token <strval> IDENTIFIER RENDER RETURN
-%type <strval> element parameters typed_param_list typed_param function html_content html_balise_open html_balise_close html_inner
+%type <strval> element parameters typed_param_list typed_param function html_content html_balise_open html_balise_close html_inner html_balise_autoferme
 %start program
 
 %%
@@ -302,6 +302,25 @@ html_content:
         free($1);
         $$ = tmp;
         
+    }
+    |
+    html_balise_autoferme html_content
+    { 
+        char* tmp = malloc(strlen($1) + strlen($2) + 1); // "<tag/>"
+        sprintf(tmp, "<%s/> %s ", $1, $2);
+        free($1);
+        free($2);
+        $$ = tmp;
+    }
+    ;
+
+html_balise_autoferme:
+    LT IDENTIFIER SLASH GT
+    {
+        char* tmp = malloc(strlen($2) + 3); // "<tag/>"
+        sprintf(tmp, "%s", $2);
+        free($2);
+        $$ = tmp;
     }
     ;
 
