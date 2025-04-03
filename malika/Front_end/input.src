@@ -1,9 +1,11 @@
 component UserProfile (name:int) {
     render() {
-    return <div>
+    return <>
+        <div>
         <br/>
         <h1>{name}</h1>
-     </div>;
+     </div>
+     </>;
     }
 
 }

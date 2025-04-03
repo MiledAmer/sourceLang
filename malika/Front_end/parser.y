@@ -43,6 +43,15 @@ int needs_unistd = 0;
 int needs_fcntl = 0;
 int needs_threads = 0;
 
+/* Structure de la pile pour les tags HTML */
+typedef struct node_tag {
+    char* tag_name;
+    struct node_tag* next;
+} node_tag;
+
+node_tag* pile_tags = NULL;
+
+
 // Fonction pour ajouter du texte au buffer
 void append_to_buffer(const char *text) {
     snprintf(output_buffer + buffer_index, sizeof(output_buffer) - buffer_index, "%s", text);
@@ -180,7 +189,47 @@ void analyze_dependencies() {
     }
 }
 
+/* Fonction pour empiler un tag */
+void empiler_tag(char* tag_name) {
+    node_tag* nouveau = (node_tag*)malloc(sizeof(node_tag));
+    nouveau->tag_name = strdup(tag_name);  // Dupliquer la chaîne pour la stocker
+    nouveau->next = pile_tags;
+    // pile_tags = nouveau;
+    printf("Tag empilé: %s\n", tag_name);  // Pour déboguer
+}
+
+/* Fonction pour dépiler et vérifier un tag */
+int verifier_tag_fermant(char* tag_name) {
+    if (pile_tags == NULL) {
+        // printf("Erreur: balise fermante %s sans balise ouvrante correspondante\n", tag_name);
+        return 0;
+    }
+    
+    if (strcmp(pile_tags->tag_name, tag_name) == 0) {
+        node_tag* tmp = pile_tags;
+        pile_tags = pile_tags->next;
+        free(tmp->tag_name);
+        free(tmp);
+        // printf("Tag vérifié et dépilé: %s\n", tag_name);  // Pour déboguer
+        return 1;
+    } else {
+        // printf("Erreur: balise fermante %s ne correspond pas à la dernière balise ouvrante %s\n", 
+               tag_name, pile_tags->tag_name);
+        return 0;
+    }
+}
+
+/* Fonction pour libérer la pile à la fin */
+void liberer_pile() {
+    while (pile_tags != NULL) {
+        node_tag* tmp = pile_tags;
+        pile_tags = pile_tags->next;
+        free(tmp->tag_name);
+        free(tmp);
+    }
+}
 %}
+
 
 %union {
     int intval;   // For numeric values
@@ -189,7 +238,7 @@ void analyze_dependencies() {
 
 
 %token COMPONENT LBRACE RBRACE LPAREN RPAREN LT GT SLASH COMMA COLON
-%token <strval> IDENTIFIER RENDER RETURN
+%token <strval> IDENTIFIER RENDER RETURN CLASSNAME DOUBLE_QUOTE EQUALS
 %type <strval> element parameters typed_param_list typed_param function html_content html_balise_open html_balise_close html_inner html_balise_autoferme
 %start program
 
@@ -198,14 +247,18 @@ void analyze_dependencies() {
 program:
       element
       {
-          // Analyser les dépendances après le parsing
-          analyze_dependencies();
-          
-          // Générer les includes en premier
-          generate_includes();
-          
-          // Afficher le code généré
-          printf("%s", output_buffer);
+        // Analyser les dépendances après le parsing
+        analyze_dependencies();
+        
+        // Générer les includes en premier
+        generate_includes();
+        
+        // Afficher le code généré
+        printf("%s", output_buffer);
+
+        // Libérer la pile des tags
+        liberer_pile(); 
+        
       }
     ;
 
@@ -282,17 +335,12 @@ html_content:
     html_balise_open html_content html_balise_close
     { 
         char* tmp = malloc(strlen($1) + strlen($2) + strlen($3) + 1);
-        if (strcmp($1, $3) == 0){
-            sprintf(tmp, "<%s> %s </%s>", $1, $2, $3);
-            free($1);
-            free($2);
-            free($3);
-            $$ = tmp;
-        }
-        else {
-            yyerror("Balises non correspondantes");
-            $$ = strdup("");
-        }
+        sprintf(tmp, "<%s> %s </%s>", $1, $2, $3);
+        free($1);
+        free($2);
+        free($3);
+        $$ = tmp;
+    
     }
     |
     html_inner
@@ -325,20 +373,54 @@ html_balise_autoferme:
     ;
 
 html_balise_open:
+    LT GT
+    {
+        char* tmp = malloc(1); // "<tag>"
+        sprintf(tmp, "");
+        empiler_tag("empty");
+        $$ = tmp;
+        
+    }
+    |
     LT IDENTIFIER GT
     {
         char* tmp = malloc(strlen($2) + 3); // "<tag>"
         sprintf(tmp, "%s", $2);
+        
+        // Empiler l'identifiant pour vérification ultérieure
+        empiler_tag($2);
+        
         free($2);
         $$ = tmp;
     }
+    |
+    LT IDENTIFIER CLASSNAME EQUALS DOUBLE_QUOTE IDENTIFIER DOUBLE_QUOTE GT
+    {
+        char* tmp = malloc(strlen($2) + strlen($6) + 15); //<tag className="..." >
+        sprintf(tmp, "%s classname=\"%s\"", $2, $6);
+        
+        // Empiler l'identifiant pour vérification ultérieure
+        empiler_tag($2);
+        
+        free($2);
+        free($6);
+        $$ = tmp;
+    }
     ;
-
 html_balise_close:
+    LT SLASH GT
+    {
+        char* tmp = malloc(1); // "</>"
+        sprintf(tmp, "");
+        verifier_tag_fermant("empty");
+        $$ = tmp;
+    }
+    |
     LT SLASH IDENTIFIER GT
     {
-        char* tmp = malloc(strlen($3) + 4); // "</tag>"
+        char* tmp = malloc(1); // "</tag>"
         sprintf(tmp, "%s", $3);
+        verifier_tag_fermant($3);
         free($3);
         $$ = tmp;
     }

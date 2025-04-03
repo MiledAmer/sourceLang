@@ -9,6 +9,9 @@
 "component"                     { return COMPONENT; }
 "render"                        { return RENDER; }
 "return"                        { return RETURN; }
+"className"                     { return CLASSNAME; }
+"="                             { return EQUALS; }
+"\""                            { return DOUBLE_QUOTE; }
 "("                             { return LPAREN; }
 ")"                             { return RPAREN; }
 "<"                             {return LT;}
