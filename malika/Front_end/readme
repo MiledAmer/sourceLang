@@ -1,0 +1,95 @@
+arbre des regle sous forme de AST
+Program
+ └── Element
+      ├── COMPONENT
+      ├── IDENTIFIER (Nom de composant)
+      ├── LPAREN
+      ├── Parameters
+      │     └── Typed_Param_List
+      │          ├── Typed_Param
+      │          │     ├── IDENTIFIER (Paramètre 1)
+      │          │     └── IDENTIFIER (Type du paramètre 1)
+      │          └── COMMA
+      │          └── Typed_Param
+      │               ├── IDENTIFIER (Paramètre 2)
+      │               └── IDENTIFIER (Type du paramètre 2)
+      ├── RPAREN
+      ├── LBRACE
+      ├── Function
+      │     ├── LPAREN
+      │     ├── RETURN
+      │     ├── Html_Content
+      │     │     ├── Html_Balise_Open
+      │     │     │     ├── LT
+      │     │     │     ├── IDENTIFIER (balise ouvrante)
+      │     │     │     └── Attributes
+      │     │     │           └── Attribute
+      │     │     │                ├── IDENTIFIER (Attribut)
+      │     │     │                ├── EQUALS
+      │     │     │                ├── DOUBLE_QUOTE
+      │     │     │                └── IDENTIFIER (Valeur de l'attribut)
+      │     │     ├── Html_Content
+      │     │     │     └── Html_Balise_Close
+      │     │     │           ├── LT
+      │     │     │           ├── SLASH
+      │     │     │           └── IDENTIFIER (balise fermante)
+      │     │     └── Html_Balise_Close
+      ├── RBRACE
+
+Parameters
+ ├── Typed_Param_List
+      ├── Typed_Param
+      │     ├── IDENTIFIER (Nom de paramètre)
+      │     └── IDENTIFIER (Type de paramètre)
+      └── COMMA
+      └── Typed_Param
+           ├── IDENTIFIER (Nom de paramètre)
+           └── IDENTIFIER (Type de paramètre)
+
+Typed_Param
+ ├── IDENTIFIER (Nom du paramètre)
+ └── IDENTIFIER (Type du paramètre)
+
+Html_Content
+ ├── Html_Balise_Open
+ │     ├── LT
+ │     ├── IDENTIFIER (Nom de la balise)
+ │     └── Attributes
+ │           └── Attribute
+ │                ├── IDENTIFIER (Nom de l'attribut)
+ │                ├── EQUALS
+ │                ├── DOUBLE_QUOTE
+ │                └── IDENTIFIER (Valeur de l'attribut)
+ └── Html_Content
+       └── Html_Balise_Close
+             ├── LT
+             ├── SLASH
+             └── IDENTIFIER (Nom de la balise fermante)
+
+Html_Balise_Open
+ ├── LT
+ ├── IDENTIFIER (Nom de la balise)
+ └── Attributes
+
+Html_Balise_Close
+ ├── LT
+ ├── SLASH
+ └── IDENTIFIER (Nom de la balise fermante)
+
+Attributes
+ ├── Attribute
+      └── IDENTIFIER (Nom de l'attribut)
+      ├── EQUALS
+      ├── DOUBLE_QUOTE
+      └── IDENTIFIER (Valeur de l'attribut)
+ └── Attribute
+      └── IDENTIFIER (Nom de l'attribut)
+      ├── EQUALS
+      ├── DOUBLE_QUOTE
+      └── IDENTIFIER (Valeur de l'attribut)
+
+Attribute
+ ├── IDENTIFIER (Nom de l'attribut)
+ ├── EQUALS
+ ├── DOUBLE_QUOTE
+ └── IDENTIFIER (Valeur de l'attribut)
