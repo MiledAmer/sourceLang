@@ -8,7 +8,6 @@
 
 "component"                     { return COMPONENT; }
 "return"                        { return RETURN; }
-"className"                     { return CLASSNAME; }
 "="                             { return EQUALS; }
 "\""                            { return DOUBLE_QUOTE; }
 "("                             { return LPAREN; }

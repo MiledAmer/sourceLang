@@ -3,7 +3,7 @@ component UserProfile (name:int) {
     return <>
         <div>
         <br/>
-        <h1>{name}</h1>
+        <h1 id="main">{name}</h1>
      </div>
      </>;
     )

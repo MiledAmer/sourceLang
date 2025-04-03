@@ -238,8 +238,8 @@ void liberer_pile() {
 
 
 %token COMPONENT LBRACE RBRACE LPAREN RPAREN LT GT SLASH COMMA COLON
-%token <strval> IDENTIFIER RETURN CLASSNAME DOUBLE_QUOTE EQUALS
-%type <strval> element parameters typed_param_list typed_param function html_content html_balise_open html_balise_close html_inner html_balise_autoferme
+%token <strval> IDENTIFIER RETURN DOUBLE_QUOTE EQUALS
+%type <strval> element parameters typed_param_list typed_param function html_content html_balise_open html_balise_close html_inner html_balise_autoferme attributes attribute
 %start program
 
 %%
@@ -361,11 +361,12 @@ html_content:
     ;
 
 html_balise_autoferme:
-    LT IDENTIFIER SLASH GT
+    LT IDENTIFIER attributes SLASH GT
     {
-        char* tmp = malloc(strlen($2) + 3); // "<tag/>"
-        sprintf(tmp, "%s", $2);
+        char* tmp = malloc(strlen($2) +strlen($3)+ 3); // "<tag/>"
+        sprintf(tmp, "%s %s", $2, $3);
         free($2);
+        free($3);
         $$ = tmp;
     }
     ;
@@ -380,28 +381,61 @@ html_balise_open:
         
     }
     |
-    LT IDENTIFIER GT
+    LT IDENTIFIER attributes GT
     {
-        char* tmp = malloc(strlen($2) + 3); // "<tag>"
-        sprintf(tmp, "%s", $2);
+        char* tmp = malloc(strlen($2)+strlen($3)+ 3); // "<tag>"
+        sprintf(tmp, "%s %s", $2,$3);
         
         // Empiler l'identifiant pour vérification ultérieure
         empiler_tag($2);
-        
+        free($2);
+        free($3);
+        $$ = tmp;
+    }
+    ;
+
+   
+attributes:
+    attribute
+    {
+        $$ = $1;
+    }
+    | attributes attribute
+    {
+        char* tmp = malloc(strlen($1) + strlen($2) + 2);
+        sprintf(tmp, "%s %s", $1, $2);
+        free($1);
         free($2);
         $$ = tmp;
     }
-    |
-    LT IDENTIFIER CLASSNAME EQUALS DOUBLE_QUOTE IDENTIFIER DOUBLE_QUOTE GT
+    | /* empty */
     {
-        char* tmp = malloc(strlen($2) + strlen($6) + 15); //<tag className="..." >
-        sprintf(tmp, "%s classname=\"%s\"", $2, $6);
-        
-        // Empiler l'identifiant pour vérification ultérieure
-        empiler_tag($2);
-        
-        free($2);
-        free($6);
+        $$ = strdup("");
+    }
+    ;
+
+attribute:
+    IDENTIFIER EQUALS DOUBLE_QUOTE IDENTIFIER DOUBLE_QUOTE
+    {
+        char* tmp = malloc(strlen($1) + strlen($4) + 10);
+        sprintf(tmp, "%s='%s'", $1, $4);
+        free($1);
+        free($4);
+        $$ = tmp;
+    }
+    | IDENTIFIER EQUALS DOUBLE_QUOTE DOUBLE_QUOTE
+    {
+        char* tmp = malloc(strlen($1) + 10);
+        sprintf(tmp, "%s=''", $1);
+        free($1);
+        $$ = tmp;
+    }
+    | IDENTIFIER
+    {
+        // For boolean attributes like <input disabled>
+        char* tmp = malloc(strlen($1) + 10);
+        sprintf(tmp, "%s", $1);
+        free($1);
         $$ = tmp;
     }
     ;
