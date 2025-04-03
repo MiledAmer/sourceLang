@@ -194,8 +194,8 @@ void empiler_tag(char* tag_name) {
     node_tag* nouveau = (node_tag*)malloc(sizeof(node_tag));
     nouveau->tag_name = strdup(tag_name);  // Dupliquer la chaîne pour la stocker
     nouveau->next = pile_tags;
-    // pile_tags = nouveau;
-    printf("Tag empilé: %s\n", tag_name);  // Pour déboguer
+    pile_tags = nouveau;
+    // printf("Tag empilé: %s\n", tag_name);  // Pour déboguer
 }
 
 /* Fonction pour dépiler et vérifier un tag */
@@ -214,7 +214,7 @@ int verifier_tag_fermant(char* tag_name) {
         return 1;
     } else {
         // printf("Erreur: balise fermante %s ne correspond pas à la dernière balise ouvrante %s\n", 
-               tag_name, pile_tags->tag_name);
+            //    tag_name, pile_tags->tag_name);
         return 0;
     }
 }
@@ -256,9 +256,6 @@ program:
         // Afficher le code généré
         printf("%s", output_buffer);
 
-        // Libérer la pile des tags
-        liberer_pile(); 
-        
       }
     ;
 

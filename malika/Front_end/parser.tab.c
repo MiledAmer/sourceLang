@@ -266,13 +266,13 @@ void empiler_tag(char* tag_name) {
     nouveau->tag_name = strdup(tag_name);  // Dupliquer la chaîne pour la stocker
     nouveau->next = pile_tags;
     pile_tags = nouveau;
-    printf("Tag empilé: %s\n", tag_name);  // Pour déboguer
+    // printf("Tag empilé: %s\n", tag_name);  // Pour déboguer
 }
 
 /* Fonction pour dépiler et vérifier un tag */
 int verifier_tag_fermant(char* tag_name) {
     if (pile_tags == NULL) {
-        printf("Erreur: balise fermante %s sans balise ouvrante correspondante\n", tag_name);
+        // printf("Erreur: balise fermante %s sans balise ouvrante correspondante\n", tag_name);
         return 0;
     }
     
@@ -281,11 +281,11 @@ int verifier_tag_fermant(char* tag_name) {
         pile_tags = pile_tags->next;
         free(tmp->tag_name);
         free(tmp);
-        printf("Tag vérifié et dépilé: %s\n", tag_name);  // Pour déboguer
+        // printf("Tag vérifié et dépilé: %s\n", tag_name);  // Pour déboguer
         return 1;
     } else {
-        printf("Erreur: balise fermante %s ne correspond pas à la dernière balise ouvrante %s\n", 
-               tag_name, pile_tags->tag_name);
+        // printf("Erreur: balise fermante %s ne correspond pas à la dernière balise ouvrante %s\n", 
+            //    tag_name, pile_tags->tag_name);
         return 0;
     }
 }
@@ -668,9 +668,9 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,   248,   248,   262,   273,   274,   278,   280,   291,   309,
-     310,   331,   342,   351,   362,   372,   381,   393,   407,   415,
-     426,   433,   470
+       0,   248,   248,   263,   274,   275,   279,   281,   292,   310,
+     311,   332,   343,   352,   363,   373,   382,   394,   408,   416,
+     427,   434,   471
 };
 #endif
 
@@ -1602,21 +1602,22 @@ yyreduce:
 /* Line 1455 of yacc.c  */
 #line 249 "parser.y"
     {
-          // Analyser les dépendances après le parsing
-          analyze_dependencies();
-          
-          // Générer les includes en premier
-          generate_includes();
-          
-          // Afficher le code généré
-          printf("%s", output_buffer);
+        // Analyser les dépendances après le parsing
+        analyze_dependencies();
+        
+        // Générer les includes en premier
+        generate_includes();
+        
+        // Afficher le code généré
+        printf("%s", output_buffer);
+
       ;}
     break;
 
   case 3:
 
 /* Line 1455 of yacc.c  */
-#line 263 "parser.y"
+#line 264 "parser.y"
     { 
           /* $2 is the component name and $4 is the parameter list */
           char buffer[1000];
@@ -1629,28 +1630,28 @@ yyreduce:
   case 4:
 
 /* Line 1455 of yacc.c  */
-#line 273 "parser.y"
+#line 274 "parser.y"
     { (yyval.strval) = strdup(""); ;}
     break;
 
   case 5:
 
 /* Line 1455 of yacc.c  */
-#line 274 "parser.y"
+#line 275 "parser.y"
     { (yyval.strval) = (yyvsp[(1) - (1)].strval); ;}
     break;
 
   case 6:
 
 /* Line 1455 of yacc.c  */
-#line 279 "parser.y"
+#line 280 "parser.y"
     { (yyval.strval) = (yyvsp[(1) - (1)].strval); ;}
     break;
 
   case 7:
 
 /* Line 1455 of yacc.c  */
-#line 281 "parser.y"
+#line 282 "parser.y"
     {
           /* Concatenate the previous list with ", " and the new parameter */
           char* tmp = malloc(strlen((yyvsp[(1) - (3)].strval)) + strlen((yyvsp[(3) - (3)].strval)) + 3); // extra space for comma, space, and '\0'
@@ -1663,7 +1664,7 @@ yyreduce:
   case 8:
 
 /* Line 1455 of yacc.c  */
-#line 292 "parser.y"
+#line 293 "parser.y"
     {
         
         strcpy(identifiers[id_count], (yyvsp[(1) - (3)].strval));
@@ -1683,14 +1684,14 @@ yyreduce:
   case 9:
 
 /* Line 1455 of yacc.c  */
-#line 309 "parser.y"
+#line 310 "parser.y"
     { (yyval.strval) = strdup(""); ;}
     break;
 
   case 10:
 
 /* Line 1455 of yacc.c  */
-#line 311 "parser.y"
+#line 312 "parser.y"
     { 
         char* tmp = malloc(strlen((yyvsp[(6) - (7)].strval)) + 50); // Allouer mémoire pour printf
         sprintf(tmp, "\n\tprintf(\"%s\"", (yyvsp[(6) - (7)].strval));
@@ -1713,7 +1714,7 @@ yyreduce:
   case 11:
 
 /* Line 1455 of yacc.c  */
-#line 332 "parser.y"
+#line 333 "parser.y"
     { 
         char* tmp = malloc(strlen((yyvsp[(1) - (3)].strval)) + strlen((yyvsp[(2) - (3)].strval)) + strlen((yyvsp[(3) - (3)].strval)) + 1);
         sprintf(tmp, "<%s> %s </%s>", (yyvsp[(1) - (3)].strval), (yyvsp[(2) - (3)].strval), (yyvsp[(3) - (3)].strval));
@@ -1728,7 +1729,7 @@ yyreduce:
   case 12:
 
 /* Line 1455 of yacc.c  */
-#line 343 "parser.y"
+#line 344 "parser.y"
     { 
         char* tmp = malloc( strlen((yyvsp[(1) - (1)].strval)) + 5);
         sprintf(tmp, "%s", (yyvsp[(1) - (1)].strval));
@@ -1741,7 +1742,7 @@ yyreduce:
   case 13:
 
 /* Line 1455 of yacc.c  */
-#line 352 "parser.y"
+#line 353 "parser.y"
     { 
         char* tmp = malloc(strlen((yyvsp[(1) - (2)].strval)) + strlen((yyvsp[(2) - (2)].strval)) + 1); // "<tag/>"
         sprintf(tmp, "<%s/> %s ", (yyvsp[(1) - (2)].strval), (yyvsp[(2) - (2)].strval));
@@ -1754,7 +1755,7 @@ yyreduce:
   case 14:
 
 /* Line 1455 of yacc.c  */
-#line 363 "parser.y"
+#line 364 "parser.y"
     {
         char* tmp = malloc(strlen((yyvsp[(2) - (4)].strval)) + 3); // "<tag/>"
         sprintf(tmp, "%s", (yyvsp[(2) - (4)].strval));
@@ -1766,7 +1767,7 @@ yyreduce:
   case 15:
 
 /* Line 1455 of yacc.c  */
-#line 373 "parser.y"
+#line 374 "parser.y"
     {
         char* tmp = malloc(1); // "<tag>"
         sprintf(tmp, "");
@@ -1779,7 +1780,7 @@ yyreduce:
   case 16:
 
 /* Line 1455 of yacc.c  */
-#line 382 "parser.y"
+#line 383 "parser.y"
     {
         char* tmp = malloc(strlen((yyvsp[(2) - (3)].strval)) + 3); // "<tag>"
         sprintf(tmp, "%s", (yyvsp[(2) - (3)].strval));
@@ -1795,7 +1796,7 @@ yyreduce:
   case 17:
 
 /* Line 1455 of yacc.c  */
-#line 394 "parser.y"
+#line 395 "parser.y"
     {
         char* tmp = malloc(strlen((yyvsp[(2) - (8)].strval)) + strlen((yyvsp[(6) - (8)].strval)) + 15); //<tag className="..." >
         sprintf(tmp, "%s classname=\"%s\"", (yyvsp[(2) - (8)].strval), (yyvsp[(6) - (8)].strval));
@@ -1812,7 +1813,7 @@ yyreduce:
   case 18:
 
 /* Line 1455 of yacc.c  */
-#line 408 "parser.y"
+#line 409 "parser.y"
     {
         char* tmp = malloc(1); // "</>"
         sprintf(tmp, "");
@@ -1824,7 +1825,7 @@ yyreduce:
   case 19:
 
 /* Line 1455 of yacc.c  */
-#line 416 "parser.y"
+#line 417 "parser.y"
     {
         char* tmp = malloc(1); // "</tag>"
         sprintf(tmp, "%s", (yyvsp[(3) - (4)].strval));
@@ -1837,7 +1838,7 @@ yyreduce:
   case 20:
 
 /* Line 1455 of yacc.c  */
-#line 426 "parser.y"
+#line 427 "parser.y"
     {
         char* tmp = malloc(strlen((yyvsp[(1) - (1)].strval)) + 1); 
         sprintf(tmp, "%s", (yyvsp[(1) - (1)].strval));
@@ -1849,7 +1850,7 @@ yyreduce:
   case 21:
 
 /* Line 1455 of yacc.c  */
-#line 434 "parser.y"
+#line 435 "parser.y"
     { 
         found = 0;
         char format[10] = "%s";  // Format par défaut pour string
@@ -1890,7 +1891,7 @@ yyreduce:
   case 22:
 
 /* Line 1455 of yacc.c  */
-#line 470 "parser.y"
+#line 471 "parser.y"
     { 
         (yyval.strval) = strdup("");
     ;}
@@ -1899,7 +1900,7 @@ yyreduce:
 
 
 /* Line 1455 of yacc.c  */
-#line 1903 "parser.tab.c"
+#line 1904 "parser.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -2111,7 +2112,7 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 476 "parser.y"
+#line 477 "parser.y"
 
 
 void yyerror(const char *s) {
