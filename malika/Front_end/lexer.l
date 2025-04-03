@@ -7,7 +7,6 @@
 %%
 
 "component"                     { return COMPONENT; }
-"render"                        { return RENDER; }
 "return"                        { return RETURN; }
 "className"                     { return CLASSNAME; }
 "="                             { return EQUALS; }

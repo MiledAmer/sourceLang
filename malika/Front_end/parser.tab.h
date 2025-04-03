@@ -50,11 +50,10 @@
      COMMA = 266,
      COLON = 267,
      IDENTIFIER = 268,
-     RENDER = 269,
-     RETURN = 270,
-     CLASSNAME = 271,
-     DOUBLE_QUOTE = 272,
-     EQUALS = 273
+     RETURN = 269,
+     CLASSNAME = 270,
+     DOUBLE_QUOTE = 271,
+     EQUALS = 272
    };
 #endif
 
@@ -73,7 +72,7 @@ typedef union YYSTYPE
 
 
 /* Line 1676 of yacc.c  */
-#line 77 "parser.tab.h"
+#line 76 "parser.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

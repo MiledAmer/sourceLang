@@ -238,7 +238,7 @@ void liberer_pile() {
 
 
 %token COMPONENT LBRACE RBRACE LPAREN RPAREN LT GT SLASH COMMA COLON
-%token <strval> IDENTIFIER RENDER RETURN CLASSNAME DOUBLE_QUOTE EQUALS
+%token <strval> IDENTIFIER RETURN CLASSNAME DOUBLE_QUOTE EQUALS
 %type <strval> element parameters typed_param_list typed_param function html_content html_balise_open html_balise_close html_inner html_balise_autoferme
 %start program
 
@@ -247,6 +247,7 @@ void liberer_pile() {
 program:
       element
       {
+        liberer_pile(); // Libérer la pile des tags à la fin du parsing
         // Analyser les dépendances après le parsing
         analyze_dependencies();
         
@@ -308,11 +309,11 @@ typed_param:
 
 function:
     /* empty */ { $$ = strdup(""); }
-    |RENDER LPAREN RPAREN LBRACE RETURN html_content RBRACE 
+    | LPAREN RETURN html_content RPAREN
     { 
-        char* tmp = malloc(strlen($6) + 50); // Allouer mémoire pour printf
-        sprintf(tmp, "\n\tprintf(\"%s\"", $6);
-        free($6);
+        char* tmp = malloc(strlen($3) + 50); // Allouer mémoire pour printf
+        sprintf(tmp, "\n\tprintf(\"%s\"", $3);
+        free($3);
 
         // Ajouter les arguments à printf
         if (id_count > 0) {
