@@ -1,13 +1,45 @@
-component UserProfile (name:int) {
-    (
-    return <>
-        <div>
-        <br/>
-        <h1 id="main">{name}</h1>
-     </div>
-     </>;
-    )
+fihcier 2 cardComponent:
 
+component cardComponent (userName: string, age:int){
+    return (
+        <div>
+            <h2>{userName}</h2>
+            <p>{age}</p>
+        </div>
+    );
 }
 
+fichier 1 main:
+import cardComponent from "./cardComponent.src"
 
+component main (){
+
+    type User ={
+        name:string;
+        age:int;
+    };
+
+    hello:string = "hello world";
+
+    users:User[] = [
+        {
+            name:"miled",
+            age:24
+        },
+        {
+            name:"malika",
+            age:22
+        }
+    ];
+
+    return(
+        <div>
+        <h1>{hello}</h1>
+        {
+            forEach(i:User in users){
+                <cardComponent userName={i.name} age={i.age} />
+            }
+        }
+        </div>
+    )
+}

@@ -228,6 +228,7 @@ void liberer_pile() {
         free(tmp);
     }
 }
+
 %}
 
 
