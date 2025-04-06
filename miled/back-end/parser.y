@@ -9,6 +9,8 @@ extern char *yytext;
 
 void yyerror(const char *s);
 int yylex(void);
+
+
 %}
 
 %debug

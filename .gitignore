@@ -1,0 +1,24 @@
+# Logs
+spa-example/logs
+spa-example/*.log
+spa-example/npm-debug.log*
+spa-example/yarn-debug.log*
+spa-example/yarn-error.log*
+spa-example/pnpm-debug.log*
+spa-example/lerna-debug.log*
+
+spa-example/node_modules
+spa-example/dist
+spa-example/dist-ssr
+spa-example/*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
