@@ -7,6 +7,9 @@
 %%
 
 "component"                     { return COMPONENT; }
+"import"                        { return IMPORT; }
+"from"                          { return FROM; }
+"type"                          { return TYPE; }
 "return"                        { return RETURN; }
 "="                             { return EQUALS; }
 "\""                            { return DOUBLE_QUOTE; }

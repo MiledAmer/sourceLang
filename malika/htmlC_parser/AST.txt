@@ -30,11 +30,11 @@ Program
    │  │     │     │                ├── DOUBLE_QUOTE
    │  │     │     │                └── IDENTIFIER (Valeur de l'attribut)
    │  │     │     ├── Html_Content
-   │  │     │     │     └── Html_Balise_Close
-   │  │     │     │           ├── LT
-   │  │     │     │           ├── SLASH
-   │  │     │     │           └── IDENTIFIER (balise fermante)
+   │  │     │     │     
    │  │     │     └── Html_Balise_Close
+   │  │     │         ├── LT
+   │  │     │         ├── SLASH
+   │  │     │         └── IDENTIFIER (balise fermante)
    │  │     ├── SEMICOLON
    │  ├── TYPE_Instruction
    │  │     ├── TYPE  
