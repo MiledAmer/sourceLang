@@ -1,9 +1,0 @@
-
-component cardComponent (userName: string, age:int){
-    return (
-        <div>
-            <h2>{userName}</h2>
-            <p>{age}</p>
-        </div>
-    );
-}
