@@ -1,0 +1,3 @@
+sh ./scripts/build.sh  
+sh ./scripts/run.sh input.src code.c
+sh ./scripts/generate_html.sh 
