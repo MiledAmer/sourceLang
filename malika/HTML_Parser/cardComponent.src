@@ -1,0 +1,7 @@
+component cardComponent (userName: string, age:int){
+    return (
+        <div>
+            <h2>World</h2>
+        </div>
+    );
+}

@@ -1,15 +1,12 @@
-component cardComponent (userName: string, age:int){
-      type User ={
-        name:string;
-        age:int;
-    };
+import cardComponent from "./cardComponent.src";
+import userProfile from "./userProfile.src";
+component main (){
 
-
-    return (
+    return(
         <div>
-            <h2>{userName}</h2>
-            <p>{age}</p>
+        <h1>hello</h1>
+            <cardComponent  />
+            <userProfile/>
         </div>
     );
 }
-

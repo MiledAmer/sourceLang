@@ -1,0 +1,5 @@
+component userProfile (userName: string, age:int){
+    return (
+        <p>Malika</p>
+    );
+}
