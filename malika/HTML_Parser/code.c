@@ -3,9 +3,18 @@
 #include <string.h>
 
 char output_buffer[10000] = {
-    "<div class='cardComponent'>\n"
-    "User\n"
-    "<div><h2>{userName}</h2><p>{age}</p></div>\n"
+    "<div class='main'>\n"
+    "<div><h1>hello</h1><div class='cardComponent'>\n"
+    "\n"
+    "        <div>\n"
+    "            <h2>World</h2>\n"
+    "        </div>\n"
+    "    \n"
+    "</div><div class='userProfile'>\n"
+    "\n"
+    "        <p>Malika</p>\n"
+    "    \n"
+    "</div></div>\n"
     "</div>"
 };
 

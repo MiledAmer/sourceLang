@@ -59,7 +59,7 @@ check_vite_project() {
   fi
   
   # Vérifier si vite.config.ts/js existe pour confirmer qu'il s'agit d'un projet valide
-  if [ ! -f "$PROJECT_PATH/vite.config.ts" ] && [ ! -f "$PROJECT_PATH/vite.config.js" ]; then
+  if [ ! -f "$PROJECT_PATH/vite.config.ts" ] && [ ! -f "$PROJECT_PATH/package.json" ]; then
     print_error "Aucun fichier vite.config.ts/js trouvé dans $PROJECT_PATH. Est-ce un projet Vite valide?"
     exit 1
   fi
@@ -101,7 +101,7 @@ move_html_file() {
     print_warning "Un fichier index.html existe déjà dans le projet."
     read -p "Voulez-vous le remplacer? (o/N): " REPLACE
     
-    if [[ "$REPLACE" != "o" && "$REPLACE" != "O" ]]; then
+    if [[ "$REPLACE" -eq "o" && "$REPLACE" -eq "O" ]]; then
       print_status "Création d'une copie de sauvegarde..."
       cp "$PROJECT_PATH/index.html" "$PROJECT_PATH/index.html.bak"
       print_success "Sauvegarde créée: $PROJECT_PATH/index.html.bak"

@@ -76,7 +76,8 @@
 
 extern int yylex();
 void yyerror(const char *s);
-
+extern FILE *yyin;  
+extern void yyrestart(FILE* input_file);
 #define YYDEBUG 1
 
 char output_buffer[10000];
@@ -84,12 +85,32 @@ char interfaces_buffer[1000];  // Buffer pour les interfaces TypeScript
 int id_count = 0;
 int found = 0;
 
+// Structure pour stocker les composants importés
+typedef struct {
+    char* name;
+    char* html_content;
+} ImportedComponent;
+
+#define MAX_IMPORTED_COMPONENTS 50
+ImportedComponent imported_components[MAX_IMPORTED_COMPONENTS];
+int imported_count = 0;
+
+// Structure pour les identifiants typés
 typedef struct {
     char* name;
     char* type;
 } TypedIdentifier;
 
 TypedIdentifier identifiers[100];
+char current_component_name[100] = ""; // Nom du composant en cours d'analyse
+
+typedef struct {
+    FILE* yyin_backup;
+    char output_buffer_backup[10000];
+    char current_component_name_backup[100];
+    TypedIdentifier identifiers_backup[100];
+    int id_count_backup;
+} ParserState;
 
 void append_to_buffer(const char *str) {
     // Make sure we don't overflow the buffer
@@ -132,11 +153,6 @@ void generate_html(const char *filename) {
     printf("HTML file generated successfully: %s\n", filename);
 }
 
-// // Fonction pour générer le code C avec la fonction generate_html
-// void generate_c_file(const char *filename) {
-    
-// }
-
 // Fonction pour ajouter un identifiant et son type
 void add_identifier(const char* name, const char* type) {
     identifiers[id_count].name = strdup(name);
@@ -178,6 +194,7 @@ char* generate_html_code(const char* id_name) {
     return buffer;
 }
 
+// Fonction pour libérer la mémoire des identifiants
 void liberer_pile() {
     for (int i = 0; i < id_count; i++) {
         free(identifiers[i].name);
@@ -186,9 +203,186 @@ void liberer_pile() {
     id_count = 0;
 }
 
+// Fonction pour trouver un composant importé par son nom
+char* find_imported_component(const char* name) {
+    // printf("Recherche du composant importé: %s\n", name);
+    for (int i = 0; i < imported_count; i++) {
+        if (strcmp(imported_components[i].name, name) == 0) {
+            // printf("Composant trouvé: %s\n", name);
+            // printf("Contenu: %s\n", imported_components[i].html_content);
+            return imported_components[i].html_content;
+        }
+    }
+    return NULL;
+}
+
+// Fonction pour ajouter un composant importé
+void add_imported_component(const char* name, const char* html_content) {
+    // Vérifier si le composant existe déjà
+    for (int i = 0; i < imported_count; i++) {
+        if (strcmp(imported_components[i].name, name) == 0) {
+            // Remplacer le contenu existant
+            free(imported_components[i].html_content);
+            imported_components[i].html_content = strdup(html_content);
+            return;
+        }
+    }
+    
+    // Ajouter un nouveau composant
+    if (imported_count < MAX_IMPORTED_COMPONENTS) {
+        imported_components[imported_count].name = strdup(name);
+        imported_components[imported_count].html_content = strdup(html_content);
+        imported_count++;
+    } else {
+        fprintf(stderr, "Error: Maximum number of imported components reached\n");
+    }
+}
+void process_import(char* component, char* path) {
+    // Enlever les guillemets du chemin
+    char real_path[256];
+    strncpy(real_path, path + 1, strlen(path) - 2);  // Remove beginning and ending quotes
+    real_path[strlen(path) - 2] = '\0';
+    
+    // Vérifier si le chemin est relatif et ajouter le ./ si nécessaire
+    if (real_path[0] != '/' && strncmp(real_path, "./", 2) != 0) {
+        char temp[256];
+        sprintf(temp, "./%s", real_path);
+        strcpy(real_path, temp);
+    }
+    
+    // printf("Traitement de l'import du composant %s depuis %s\n", component, real_path);
+    
+    // Ouvrir le fichier source
+    FILE* imported_file = fopen(real_path, "r");
+    if (!imported_file) {
+        fprintf(stderr, "Erreur d'ouverture du fichier %s\n", real_path);
+        exit(1);
+    }
+    
+    // Lire le contenu du fichier
+    char buffer[10000] = {0};
+    size_t bytes_read = fread(buffer, 1, sizeof(buffer) - 1, imported_file);
+    buffer[bytes_read] = '\0';  // Assurer que la chaîne est terminée par null
+    
+    // printf("Contenu brut du fichier importé:\n%s\n", buffer);
+    
+    // Analyser manuellement le contenu pour extraire le HTML du composant
+    // Ceci est une version simplifiée qui suppose que le composant est correctement formaté
+    char* start = strstr(buffer, "component");
+    if (start) {
+        start = strstr(start, "{");
+        if (start) {
+            char* return_stmt = strstr(start, "return");
+            if (return_stmt) {
+                char* open_paren = strstr(return_stmt, "(");
+                if (open_paren) {
+                    char* close_paren = strrchr(buffer, ')');  // Trouver la dernière parenthèse fermante
+                    if (close_paren) {
+                        // Extraire le contenu HTML entre les parenthèses de l'instruction return
+                        int html_length = close_paren - (open_paren + 1);
+                        if (html_length > 0 && html_length < 9000) {
+                            char html_content[10000] = {0};
+                            strncpy(html_content, open_paren + 1, html_length);
+                            html_content[html_length] = '\0';
+                            
+                            // Créer un div englobant avec le nom du composant comme classe
+                            char final_html[10000] = {0};
+                            sprintf(final_html, "<div class='%s'>\n%s\n</div>", component, html_content);
+                            
+                            // Ajouter le composant importé à notre registre
+                            add_imported_component(component, final_html);
+                            // printf("Composant importé %s ajouté avec le contenu:\n%s\n", component, final_html);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    // Si l'analyse manuelle n'a pas fonctionné, créer un composant minimal
+    if (find_imported_component(component) == NULL) {
+        char minimal_html[1000];
+        sprintf(minimal_html, "<div class='%s'><!-- Contenu du composant %s non analysé --></div>", 
+                component, component);
+        add_imported_component(component, minimal_html);
+        // printf("Impossible d'analyser le composant %s. Utilisation d'un composant minimal.\n", component);
+    }
+    
+    // Fermer le fichier
+    fclose(imported_file);
+    
+    // printf("Import du composant %s terminé\n", component);
+}
+
+// Alternative: Utiliser une approche par système de commande externe
+void process_import_external(char* component, char* path) {
+    // Enlever les guillemets du chemin
+    char real_path[256];
+    strncpy(real_path, path + 1, strlen(path) - 2);
+    real_path[strlen(path) - 2] = '\0';
+    
+    // Vérifier si le chemin est relatif
+    if (real_path[0] != '/' && strncmp(real_path, "./", 2) != 0) {
+        char temp[256];
+        sprintf(temp, "./%s", real_path);
+        strcpy(real_path, temp);
+    }
+    
+    printf("Traitement externe du composant %s depuis %s\n", component, real_path);
+    
+    // Créer un fichier temporaire pour stocker le composant
+    char temp_file[256];
+    sprintf(temp_file, "/tmp/%s_component.html", component);
+    
+    // Lancer un processus externe pour traiter le fichier composant
+    char command[1024];
+    sprintf(command, "cp %s /tmp/temp_component.src && ./parser /tmp/temp_component.src > %s", 
+            real_path, temp_file);
+    
+    int result = system(command);
+    if (result != 0) {
+        fprintf(stderr, "Erreur lors de l'exécution de la commande: %s\n", command);
+        // Créer un composant minimal en cas d'échec
+        char minimal_html[1000];
+        sprintf(minimal_html, "<div class='%s'><!-- Échec du traitement du composant %s --></div>", 
+                component, component);
+        add_imported_component(component, minimal_html);
+    } else {
+        // Lire le fichier HTML généré
+        FILE* html_file = fopen(temp_file, "r");
+        if (html_file) {
+            char html_content[10000] = {0};
+            size_t bytes_read = fread(html_content, 1, sizeof(html_content) - 1, html_file);
+            html_content[bytes_read] = '\0';
+            
+            // Extraire le contenu entre <body> et </body>
+            char* body_start = strstr(html_content, "<body>");
+            char* body_end = strstr(html_content, "</body>");
+            
+            if (body_start && body_end) {
+                body_start += 6;  // Passer après <body>
+                *body_end = '\0'; // Terminer la chaîne à </body>
+                
+                // Ajouter le composant importé à notre registre
+                add_imported_component(component, body_start);
+                // printf("Composant importé %s ajouté avec le contenu:\n%s\n", component, body_start);
+            } else {
+                // Si on ne trouve pas les balises body, utiliser tout le contenu
+                add_imported_component(component, html_content);
+                // printf("Composant importé %s ajouté (sans balises body)\n", component);
+            }
+            
+            fclose(html_file);
+            
+            // Nettoyer le fichier temporaire
+            remove(temp_file);
+        }
+    }
+}
+
 
 /* Line 189 of yacc.c  */
-#line 192 "parser.tab.c"
+#line 386 "parser.tab.c"
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
@@ -243,7 +437,7 @@ typedef union YYSTYPE
 {
 
 /* Line 214 of yacc.c  */
-#line 119 "parser.y"
+#line 313 "parser.y"
 
     int intval;
     char* strval;
@@ -251,7 +445,7 @@ typedef union YYSTYPE
 
 
 /* Line 214 of yacc.c  */
-#line 255 "parser.tab.c"
+#line 449 "parser.tab.c"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -263,7 +457,7 @@ typedef union YYSTYPE
 
 
 /* Line 264 of yacc.c  */
-#line 267 "parser.tab.c"
+#line 461 "parser.tab.c"
 
 #ifdef short
 # undef short
@@ -476,18 +670,18 @@ union yyalloc
 #endif
 
 /* YYFINAL -- State number of the termination state.  */
-#define YYFINAL  5
+#define YYFINAL  9
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   66
+#define YYLAST   75
 
 /* YYNTOKENS -- Number of terminals.  */
 #define YYNTOKENS  21
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  19
+#define YYNNTS  20
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  34
+#define YYNRULES  37
 /* YYNRULES -- Number of states.  */
-#define YYNSTATES  72
+#define YYNSTATES  75
 
 /* YYTRANSLATE(YYLEX) -- Bison symbol number corresponding to YYLEX.  */
 #define YYUNDEFTOK  2
@@ -534,36 +728,37 @@ static const yytype_uint8 yytranslate[] =
    YYRHS.  */
 static const yytype_uint8 yyprhs[] =
 {
-       0,     0,     3,     5,    12,    13,    14,    16,    20,    24,
-      28,    29,    31,    33,    36,    38,    40,    42,    50,    53,
-      55,    60,    66,    72,    73,    76,    79,    81,    91,    97,
-      99,   100,   103,   107,   109
+       0,     0,     3,     5,     8,    15,    16,    17,    19,    23,
+      27,    31,    32,    34,    36,    39,    41,    43,    51,    54,
+      56,    61,    64,    66,    72,    78,    79,    82,    85,    87,
+      97,   103,   105,   107,   108,   111,   115,   117
 };
 
 /* YYRHS -- A `-1'-separated list of the rules' RHS.  */
 static const yytype_int8 yyrhs[] =
 {
-      22,     0,    -1,    23,    -1,     3,    19,     8,    24,     9,
-      26,    -1,    -1,    -1,    25,    -1,    25,    15,    24,    -1,
-      19,    10,    19,    -1,     6,    27,     7,    -1,    -1,    28,
-      -1,    29,    -1,    29,    28,    -1,    30,    -1,    33,    -1,
-      34,    -1,    11,    19,     5,     6,    31,     7,    12,    -1,
-      31,    32,    -1,    32,    -1,    19,    10,    19,    12,    -1,
-      14,    19,    13,    20,    12,    -1,     4,     8,    35,     9,
-      12,    -1,    -1,    35,    36,    -1,    35,    39,    -1,    36,
-      -1,    16,    19,    37,    17,    35,    16,    18,    19,    17,
-      -1,    16,    19,    37,    18,    17,    -1,    39,    -1,    -1,
-      38,    37,    -1,    19,     5,    20,    -1,    19,    -1,     6,
-      19,     7,    -1
+      22,     0,    -1,    23,    -1,    33,    23,    -1,     3,    19,
+       8,    24,     9,    26,    -1,    -1,    -1,    25,    -1,    25,
+      15,    24,    -1,    19,    10,    19,    -1,     6,    27,     7,
+      -1,    -1,    28,    -1,    29,    -1,    29,    28,    -1,    30,
+      -1,    35,    -1,    11,    19,     5,     6,    31,     7,    12,
+      -1,    31,    32,    -1,    32,    -1,    19,    10,    19,    12,
+      -1,    33,    34,    -1,    34,    -1,    14,    19,    13,    20,
+      12,    -1,     4,     8,    36,     9,    12,    -1,    -1,    36,
+      37,    -1,    36,    40,    -1,    37,    -1,    16,    19,    38,
+      17,    36,    16,    18,    19,    17,    -1,    16,    19,    38,
+      18,    17,    -1,    40,    -1,    19,    -1,    -1,    39,    38,
+      -1,    19,     5,    20,    -1,    19,    -1,     6,    19,     7,
+      -1
 };
 
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,   133,   133,   199,   219,   223,   224,   225,   234,   244,
-     250,   251,   257,   258,   267,   271,   275,   282,   289,   296,
-     300,   311,   318,   324,   325,   332,   338,   344,   395,   432,
-     438,   439,   448,   457,   471
+       0,   327,   327,   390,   456,   476,   480,   481,   482,   491,
+     501,   507,   508,   514,   515,   524,   528,   535,   542,   549,
+     553,   564,   571,   575,   586,   592,   593,   600,   606,   612,
+     671,   716,   719,   737,   738,   747,   756,   783
 };
 #endif
 
@@ -578,8 +773,8 @@ static const char *const yytname[] =
   "STRING_LITERAL", "$accept", "program", "element", "parameters",
   "parameter", "function", "function_body", "instructions", "instruction",
   "type_instruction", "type_properties", "type_property",
-  "import_instruction", "return_instruction", "html_content",
-  "html_element", "attributes", "attribute", "html_inner", 0
+  "import_instructions", "import_instruction", "return_instruction",
+  "html_content", "html_element", "attributes", "attribute", "html_inner", 0
 };
 #endif
 
@@ -597,19 +792,19 @@ static const yytype_uint16 yytoknum[] =
 /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
 static const yytype_uint8 yyr1[] =
 {
-       0,    21,    22,    23,    23,    24,    24,    24,    25,    26,
-      27,    27,    28,    28,    29,    29,    29,    30,    31,    31,
-      32,    33,    34,    35,    35,    35,    35,    36,    36,    36,
-      37,    37,    38,    39,    39
+       0,    21,    22,    22,    23,    23,    24,    24,    24,    25,
+      26,    27,    27,    28,    28,    29,    29,    30,    31,    31,
+      32,    33,    33,    34,    35,    36,    36,    36,    36,    37,
+      37,    37,    37,    38,    38,    39,    40,    40
 };
 
 /* YYR2[YYN] -- Number of symbols composing right hand side of rule YYN.  */
 static const yytype_uint8 yyr2[] =
 {
-       0,     2,     1,     6,     0,     0,     1,     3,     3,     3,
-       0,     1,     1,     2,     1,     1,     1,     7,     2,     1,
-       4,     5,     5,     0,     2,     2,     1,     9,     5,     1,
-       0,     2,     3,     1,     3
+       0,     2,     1,     2,     6,     0,     0,     1,     3,     3,
+       3,     0,     1,     1,     2,     1,     1,     7,     2,     1,
+       4,     2,     1,     5,     5,     0,     2,     2,     1,     9,
+       5,     1,     1,     0,     2,     3,     1,     3
 };
 
 /* YYDEFACT[STATE-NAME] -- Default rule to reduce with in state
@@ -617,43 +812,43 @@ static const yytype_uint8 yyr2[] =
    means the default is an error.  */
 static const yytype_uint8 yydefact[] =
 {
-       4,     0,     0,     2,     0,     1,     5,     0,     0,     6,
-       0,     0,     5,     8,    10,     3,     7,     0,     0,     0,
-       0,    11,    12,    14,    15,    16,    23,     0,     0,     9,
-      13,     0,     0,    33,     0,    26,    29,     0,     0,     0,
-      30,     0,    24,    25,     0,     0,    34,     0,     0,    30,
-      22,     0,     0,    19,    21,     0,     0,     0,    31,     0,
-       0,    18,    32,     0,    28,     0,    17,     0,    20,     0,
-       0,    27
+       5,     0,     0,     0,     2,     5,    22,     0,     0,     1,
+       3,    21,     6,     0,     0,     0,     7,     0,     0,     0,
+       6,    23,     9,    11,     4,     8,     0,     0,     0,    12,
+      13,    15,    16,    25,     0,    10,    14,     0,     0,    32,
+       0,    28,    31,     0,     0,    33,     0,    26,    27,     0,
+      37,     0,     0,    33,    24,     0,     0,    19,     0,     0,
+       0,    34,     0,     0,    18,    35,     0,    30,     0,    17,
+       0,    20,     0,     0,    29
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-      -1,     2,     3,     8,     9,    15,    20,    21,    22,    23,
-      52,    53,    24,    25,    34,    35,    48,    49,    36
+      -1,     3,     4,    15,    16,    24,    28,    29,    30,    31,
+      56,    57,     5,     6,    32,    40,    41,    52,    53,    42
 };
 
 /* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
    STATE-NUM.  */
-#define YYPACT_NINF -35
+#define YYPACT_NINF -41
 static const yytype_int8 yypact[] =
 {
-       8,     0,    20,   -35,    14,   -35,     4,    15,    18,     9,
-       7,    26,     4,   -35,    17,   -35,   -35,    25,    16,    19,
-      27,   -35,    17,   -35,   -35,   -35,    -3,    31,    24,   -35,
-     -35,    21,    22,   -35,    -4,   -35,   -35,    33,    23,    35,
-      28,    32,   -35,   -35,    29,    34,   -35,    40,   -10,    28,
-     -35,    39,    -1,   -35,   -35,    30,    -3,    36,   -35,    37,
-      42,   -35,   -35,    -2,   -35,    43,   -35,    -9,   -35,    38,
-      41,   -35
+       5,   -12,     1,    11,   -41,     5,   -41,    16,    12,   -41,
+     -41,   -41,    10,    13,    20,    22,    19,    23,    18,    26,
+      10,   -41,   -41,    17,   -41,   -41,    28,    21,    31,   -41,
+      17,   -41,   -41,    -3,    34,   -41,   -41,    24,    25,   -41,
+      -4,   -41,   -41,    35,    38,    27,    30,   -41,   -41,    29,
+     -41,    42,    -8,    27,   -41,    39,    -1,   -41,    32,    -3,
+      33,   -41,    36,    41,   -41,   -41,    -2,   -41,    44,   -41,
+       4,   -41,    40,    37,   -41
 };
 
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-     -35,   -35,   -35,    47,   -35,   -35,   -35,    44,   -35,   -35,
-     -35,    10,   -35,   -35,    -5,   -34,     3,   -35,   -33
+     -41,   -41,    46,    43,   -41,   -41,   -41,    45,   -41,   -41,
+     -41,     2,   -41,    52,   -41,     3,   -40,     7,   -41,   -39
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]].  What to do in state STATE-NUM.  If
@@ -663,38 +858,40 @@ static const yytype_int8 yypgoto[] =
 #define YYTABLE_NINF -1
 static const yytype_uint8 yytable[] =
 {
-      42,    43,    31,    31,    31,    41,    60,    56,    57,    69,
-      40,     1,    32,    32,    67,    33,    33,    33,    51,     4,
-       5,    17,     6,     7,    12,    10,    13,    11,    18,    42,
-      43,    19,    14,    26,    29,    27,    37,    38,    28,    44,
-      39,    40,    46,    45,    50,    55,    54,    47,    51,    59,
-      62,    63,    58,    64,    66,    68,    65,    70,    71,    16,
-       0,     0,    61,     0,     0,     0,    30
+      47,    48,    37,    37,    37,    46,    63,     7,     1,    59,
+      60,     9,    38,    38,    70,    39,    39,    39,    55,     2,
+       8,    26,    72,    45,    12,    13,    47,    48,    27,    14,
+      18,    19,    23,    17,    20,    21,    33,    22,    35,    43,
+      34,    49,    54,    44,    45,    50,    51,    58,    55,    62,
+      67,    10,    65,    69,    74,    68,    71,    11,    64,    73,
+      61,     0,    66,    25,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,     0,    36
 };
 
 static const yytype_int8 yycheck[] =
 {
-      34,    34,     6,     6,     6,     9,     7,    17,    18,    18,
-      19,     3,    16,    16,    16,    19,    19,    19,    19,    19,
-       0,     4,     8,    19,    15,    10,    19,     9,    11,    63,
-      63,    14,     6,     8,     7,    19,     5,    13,    19,     6,
-      19,    19,     7,    20,    12,     5,    12,    19,    19,    10,
-      20,    56,    49,    17,    12,    12,    19,    19,    17,    12,
-      -1,    -1,    52,    -1,    -1,    -1,    22
+      40,    40,     6,     6,     6,     9,     7,    19,     3,    17,
+      18,     0,    16,    16,    16,    19,    19,    19,    19,    14,
+      19,     4,    18,    19,     8,    13,    66,    66,    11,    19,
+      10,     9,     6,    20,    15,    12,     8,    19,     7,     5,
+      19,     6,    12,    19,    19,     7,    19,     5,    19,    10,
+      17,     5,    20,    12,    17,    19,    12,     5,    56,    19,
+      53,    -1,    59,    20,    -1,    -1,    -1,    -1,    -1,    -1,
+      -1,    -1,    -1,    -1,    -1,    30
 };
 
 /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
    symbol of state STATE-NUM.  */
 static const yytype_uint8 yystos[] =
 {
-       0,     3,    22,    23,    19,     0,     8,    19,    24,    25,
-      10,     9,    15,    19,     6,    26,    24,     4,    11,    14,
-      27,    28,    29,    30,    33,    34,     8,    19,    19,     7,
-      28,     6,    16,    19,    35,    36,    39,     5,    13,    19,
-      19,     9,    36,    39,     6,    20,     7,    19,    37,    38,
-      12,    19,    31,    32,    12,     5,    17,    18,    37,    10,
-       7,    32,    20,    35,    17,    19,    12,    16,    12,    18,
-      19,    17
+       0,     3,    14,    22,    23,    33,    34,    19,    19,     0,
+      23,    34,     8,    13,    19,    24,    25,    20,    10,     9,
+      15,    12,    19,     6,    26,    24,     4,    11,    27,    28,
+      29,    30,    35,     8,    19,     7,    28,     6,    16,    19,
+      36,    37,    40,     5,    19,    19,     9,    37,    40,     6,
+       7,    19,    38,    39,    12,    19,    31,    32,     5,    17,
+      18,    38,    10,     7,    32,    20,    36,    17,    19,    12,
+      16,    12,    18,    19,    17
 };
 
 #define yyerrok		(yyerrstatus = 0)
@@ -1508,76 +1705,145 @@ yyreduce:
         case 2:
 
 /* Line 1455 of yacc.c  */
-#line 133 "parser.y"
+#line 327 "parser.y"
     {
         liberer_pile();
         
         // Écrire les en-têtes nécessaires
-        printf( "#include <stdio.h>\n");
-        printf( "#include <stdlib.h>\n");
-        printf( "#include <string.h>\n\n");
+        printf("#include <stdio.h>\n");
+        printf("#include <stdlib.h>\n");
+        printf("#include <string.h>\n\n");
         
         // Déclarer le buffer global
-        printf( "char output_buffer[10000] = {\n");
+        printf("char output_buffer[10000] = {\n");
         
         // Remplir le buffer avec le contenu HTML généré
-        printf( "    \"");
+        printf("    \"");
         for (size_t i = 0; i < strlen(output_buffer); i++) {
             if (output_buffer[i] == '\n') {
-                printf( "\\n\"\n    \"");
+                printf("\\n\"\n    \"");
             } else if (output_buffer[i] == '"') {
-                printf( "\\\"");
+                printf("\\\"");
             } else if (output_buffer[i] == '\\') {
-                printf( "\\\\");
+                printf("\\\\");
             } else {
-                printf( "%c", output_buffer[i]);
+                printf("%c", output_buffer[i]);
             }
         }
         printf("\"\n};\n\n");
         
         // Écrire la fonction generate_html
-        printf( "// Fonction pour générer un fichier HTML avec le contenu du buffer\n");
-        printf( "void generate_html(const char *filename) {\n");
-        printf( "    FILE *file = fopen(filename, \"w\");\n");
-        printf( "    if (file == NULL) {\n");
-        printf( "        fprintf(stderr, \"Error: Failed to open file %%s for writing\\n\", filename);\n");
-        printf( "        return;\n");
-        printf( "    }\n");
-        printf( "    \n");
-        printf( "    // Écrire l'en-tête HTML standard\n");
-        printf( "    fprintf(file, \"<!DOCTYPE html>\\n\");\n");
-        printf( "    fprintf(file, \"<html lang=\\\"en\\\">\\n\");\n");
-        printf( "    fprintf(file, \"<head>\\n\");\n");
-        printf( "    fprintf(file, \"    <meta charset=\\\"UTF-8\\\">\\n\");\n");
-        printf( "    fprintf(file, \"    <meta name=\\\"viewport\\\" content=\\\"width=device-width, initial-scale=1.0\\\">\\n\");\n");
-        printf( "    fprintf(file, \"    <title>Generated Component</title>\\n\");\n");
-        printf( "    fprintf(file, \"</head>\\n\");\n");
-        printf( "    fprintf(file, \"<body>\\n\");\n");
-        printf( "    \n");
-        printf( "    // Écrire le contenu du buffer\n");
-        printf( "    fprintf(file, \"%%s\\n\", output_buffer);\n");
-        printf( "    \n");
-        printf( "    // Fermer le document HTML\n");
-        printf( "    fprintf(file, \"</body>\\n\");\n");
-        printf( "    fprintf(file, \"</html>\\n\");\n");
-        printf( "    \n");
-        printf( "    fclose(file);\n");
-        printf( "    printf(\"HTML file generated successfully: %%s\\n\", filename);\n");
-        printf( "}\n\n");
+        printf("// Fonction pour générer un fichier HTML avec le contenu du buffer\n");
+        printf("void generate_html(const char *filename) {\n");
+        printf("    FILE *file = fopen(filename, \"w\");\n");
+        printf("    if (file == NULL) {\n");
+        printf("        fprintf(stderr, \"Error: Failed to open file %%s for writing\\n\", filename);\n");
+        printf("        return;\n");
+        printf("    }\n");
+        printf("    \n");
+        printf("    // Écrire l'en-tête HTML standard\n");
+        printf("    fprintf(file, \"<!DOCTYPE html>\\n\");\n");
+        printf("    fprintf(file, \"<html lang=\\\"en\\\">\\n\");\n");
+        printf("    fprintf(file, \"<head>\\n\");\n");
+        printf("    fprintf(file, \"    <meta charset=\\\"UTF-8\\\">\\n\");\n");
+        printf("    fprintf(file, \"    <meta name=\\\"viewport\\\" content=\\\"width=device-width, initial-scale=1.0\\\">\\n\");\n");
+        printf("    fprintf(file, \"    <title>Generated Component</title>\\n\");\n");
+        printf("    fprintf(file, \"</head>\\n\");\n");
+        printf("    fprintf(file, \"<body>\\n\");\n");
+        printf("    \n");
+        printf("    // Écrire le contenu du buffer\n");
+        printf("    fprintf(file, \"%%s\\n\", output_buffer);\n");
+        printf("    \n");
+        printf("    // Fermer le document HTML\n");
+        printf("    fprintf(file, \"</body>\\n\");\n");
+        printf("    fprintf(file, \"</html>\\n\");\n");
+        printf("    \n");
+        printf("    fclose(file);\n");
+        printf("    printf(\"HTML file generated successfully: %%s\\n\", filename);\n");
+        printf("}\n\n");
         
         // Ajouter une fonction main pour tester
-        printf( "int main(int argc, char *argv[]) {\n");
-        printf( "    const char *output_file = (argc > 1) ? argv[1] : \"output.html\";\n");
-        printf( "    generate_html(output_file);\n");
-        printf( "    return 0;\n");
-        printf( "}\n");
+        printf("int main(int argc, char *argv[]) {\n");
+        printf("    const char *output_file = (argc > 1) ? argv[1] : \"output.html\";\n");
+        printf("    generate_html(output_file);\n");
+        printf("    return 0;\n");
+        printf("}\n");
     ;}
     break;
 
   case 3:
 
 /* Line 1455 of yacc.c  */
-#line 199 "parser.y"
+#line 390 "parser.y"
+    {
+        liberer_pile();
+        
+        // Écrire les en-têtes nécessaires
+        printf("#include <stdio.h>\n");
+        printf("#include <stdlib.h>\n");
+        printf("#include <string.h>\n\n");
+        
+        // Déclarer le buffer global
+        printf("char output_buffer[10000] = {\n");
+        
+        // Remplir le buffer avec le contenu HTML généré
+        printf("    \"");
+        for (size_t i = 0; i < strlen(output_buffer); i++) {
+            if (output_buffer[i] == '\n') {
+                printf("\\n\"\n    \"");
+            } else if (output_buffer[i] == '"') {
+                printf("\\\"");
+            } else if (output_buffer[i] == '\\') {
+                printf("\\\\");
+            } else {
+                printf("%c", output_buffer[i]);
+            }
+        }
+        printf("\"\n};\n\n");
+        
+        // Écrire la fonction generate_html
+        printf("// Fonction pour générer un fichier HTML avec le contenu du buffer\n");
+        printf("void generate_html(const char *filename) {\n");
+        printf("    FILE *file = fopen(filename, \"w\");\n");
+        printf("    if (file == NULL) {\n");
+        printf("        fprintf(stderr, \"Error: Failed to open file %%s for writing\\n\", filename);\n");
+        printf("        return;\n");
+        printf("    }\n");
+        printf("    \n");
+        printf("    // Écrire l'en-tête HTML standard\n");
+        printf("    fprintf(file, \"<!DOCTYPE html>\\n\");\n");
+        printf("    fprintf(file, \"<html lang=\\\"en\\\">\\n\");\n");
+        printf("    fprintf(file, \"<head>\\n\");\n");
+        printf("    fprintf(file, \"    <meta charset=\\\"UTF-8\\\">\\n\");\n");
+        printf("    fprintf(file, \"    <meta name=\\\"viewport\\\" content=\\\"width=device-width, initial-scale=1.0\\\">\\n\");\n");
+        printf("    fprintf(file, \"    <title>Generated Component</title>\\n\");\n");
+        printf("    fprintf(file, \"</head>\\n\");\n");
+        printf("    fprintf(file, \"<body>\\n\");\n");
+        printf("    \n");
+        printf("    // Écrire le contenu du buffer\n");
+        printf("    fprintf(file, \"%%s\\n\", output_buffer);\n");
+        printf("    \n");
+        printf("    // Fermer le document HTML\n");
+        printf("    fprintf(file, \"</body>\\n\");\n");
+        printf("    fprintf(file, \"</html>\\n\");\n");
+        printf("    \n");
+        printf("    fclose(file);\n");
+        printf("    printf(\"HTML file generated successfully: %%s\\n\", filename);\n");
+        printf("}\n\n");
+        
+        // Ajouter une fonction main pour tester
+        printf("int main(int argc, char *argv[]) {\n");
+        printf("    const char *output_file = (argc > 1) ? argv[1] : \"output.html\";\n");
+        printf("    generate_html(output_file);\n");
+        printf("    return 0;\n");
+        printf("}\n");
+    ;}
+    break;
+
+  case 4:
+
+/* Line 1455 of yacc.c  */
+#line 456 "parser.y"
     {
         // Create a buffer with sufficient space
         char buffer[10000] = {0};  // Initialize to zero
@@ -1600,31 +1866,31 @@ yyreduce:
     ;}
     break;
 
-  case 4:
-
-/* Line 1455 of yacc.c  */
-#line 219 "parser.y"
-    { (yyval.strval) = strdup(""); ;}
-    break;
-
   case 5:
 
 /* Line 1455 of yacc.c  */
-#line 223 "parser.y"
+#line 476 "parser.y"
     { (yyval.strval) = strdup(""); ;}
     break;
 
   case 6:
 
 /* Line 1455 of yacc.c  */
-#line 224 "parser.y"
-    { (yyval.strval) = (yyvsp[(1) - (1)].strval); ;}
+#line 480 "parser.y"
+    { (yyval.strval) = strdup(""); ;}
     break;
 
   case 7:
 
 /* Line 1455 of yacc.c  */
-#line 225 "parser.y"
+#line 481 "parser.y"
+    { (yyval.strval) = (yyvsp[(1) - (1)].strval); ;}
+    break;
+
+  case 8:
+
+/* Line 1455 of yacc.c  */
+#line 482 "parser.y"
     {
         char *tmp = malloc(strlen((yyvsp[(1) - (3)].strval)) + strlen((yyvsp[(3) - (3)].strval)) + 3);
         sprintf(tmp, "%s, %s", (yyvsp[(1) - (3)].strval), (yyvsp[(3) - (3)].strval));
@@ -1633,10 +1899,10 @@ yyreduce:
     ;}
     break;
 
-  case 8:
+  case 9:
 
 /* Line 1455 of yacc.c  */
-#line 234 "parser.y"
+#line 491 "parser.y"
     {
         char* tmp = malloc(strlen((yyvsp[(1) - (3)].strval)) + strlen((yyvsp[(3) - (3)].strval)) + 3);
         add_identifier((yyvsp[(1) - (3)].strval), (yyvsp[(3) - (3)].strval));
@@ -1646,42 +1912,42 @@ yyreduce:
     ;}
     break;
 
-  case 9:
+  case 10:
 
 /* Line 1455 of yacc.c  */
-#line 244 "parser.y"
+#line 501 "parser.y"
     {
         (yyval.strval) = (yyvsp[(2) - (3)].strval); // Simply pass the correctly formatted body up the parse tree
     ;}
     break;
 
-  case 10:
-
-/* Line 1455 of yacc.c  */
-#line 250 "parser.y"
-    { (yyval.strval) = strdup(""); ;}
-    break;
-
   case 11:
 
 /* Line 1455 of yacc.c  */
-#line 251 "parser.y"
-    {
-        (yyval.strval) = (yyvsp[(1) - (1)].strval); // No need for additional processing, just pass up the instructions
-    ;}
+#line 507 "parser.y"
+    { (yyval.strval) = strdup(""); ;}
     break;
 
   case 12:
 
 /* Line 1455 of yacc.c  */
-#line 257 "parser.y"
-    { (yyval.strval) = (yyvsp[(1) - (1)].strval); ;}
+#line 508 "parser.y"
+    {
+        (yyval.strval) = (yyvsp[(1) - (1)].strval); // No need for additional processing, just pass up the instructions
+    ;}
     break;
 
   case 13:
 
 /* Line 1455 of yacc.c  */
-#line 258 "parser.y"
+#line 514 "parser.y"
+    { (yyval.strval) = (yyvsp[(1) - (1)].strval); ;}
+    break;
+
+  case 14:
+
+/* Line 1455 of yacc.c  */
+#line 515 "parser.y"
     {
         char *buffer = malloc(strlen((yyvsp[(1) - (2)].strval)) + strlen((yyvsp[(2) - (2)].strval)) + 2);
         sprintf(buffer, "%s\n%s", (yyvsp[(1) - (2)].strval), (yyvsp[(2) - (2)].strval));
@@ -1690,30 +1956,20 @@ yyreduce:
     ;}
     break;
 
-  case 14:
-
-/* Line 1455 of yacc.c  */
-#line 267 "parser.y"
-    {
-        // Générer une instruction de type
-        (yyval.strval) =(yyvsp[(1) - (1)].strval); // Store the type name
-    ;}
-    break;
-
   case 15:
 
 /* Line 1455 of yacc.c  */
-#line 271 "parser.y"
+#line 524 "parser.y"
     {
-        // Générer une instruction d'import
-        (yyval.strval) = (yyvsp[(1) - (1)].strval); // Store the imported component name
+        // Générer une instruction de type
+        (yyval.strval) = (yyvsp[(1) - (1)].strval); // Store the type name
     ;}
     break;
 
   case 16:
 
 /* Line 1455 of yacc.c  */
-#line 275 "parser.y"
+#line 528 "parser.y"
     {
         // Générer une instruction de retour
         (yyval.strval) = (yyvsp[(1) - (1)].strval); // Store the return value
@@ -1723,7 +1979,7 @@ yyreduce:
   case 17:
 
 /* Line 1455 of yacc.c  */
-#line 282 "parser.y"
+#line 535 "parser.y"
     {
         // Générer une instruction de type
         (yyval.strval) = (yyvsp[(2) - (7)].strval); // Store the type name
@@ -1733,7 +1989,7 @@ yyreduce:
   case 18:
 
 /* Line 1455 of yacc.c  */
-#line 289 "parser.y"
+#line 542 "parser.y"
     {
         // Combine properties
         char *buffer = malloc(strlen((yyvsp[(1) - (2)].strval)) + strlen((yyvsp[(2) - (2)].strval)) + 2);
@@ -1746,14 +2002,14 @@ yyreduce:
   case 19:
 
 /* Line 1455 of yacc.c  */
-#line 296 "parser.y"
+#line 549 "parser.y"
     { (yyval.strval) = (yyvsp[(1) - (1)].strval); ;}
     break;
 
   case 20:
 
 /* Line 1455 of yacc.c  */
-#line 300 "parser.y"
+#line 553 "parser.y"
     { 
         // Propriété du type : <nom>: <type>
         // Return formatted property
@@ -1767,33 +2023,57 @@ yyreduce:
   case 21:
 
 /* Line 1455 of yacc.c  */
-#line 311 "parser.y"
+#line 564 "parser.y"
     {
-        // Générer une instruction d'import
-        (yyval.strval) = (yyvsp[(2) - (5)].strval); // Store the imported component name
+        // Combine import instructions
+        char *buffer = malloc(strlen((yyvsp[(1) - (2)].strval)) + strlen((yyvsp[(2) - (2)].strval)) + 2);
+        sprintf(buffer, "%s%s", (yyvsp[(1) - (2)].strval), (yyvsp[(2) - (2)].strval));
+        (yyval.strval) = buffer;
+        free((yyvsp[(1) - (2)].strval)); free((yyvsp[(2) - (2)].strval));
     ;}
     break;
 
   case 22:
 
 /* Line 1455 of yacc.c  */
-#line 318 "parser.y"
-    {
-        (yyval.strval) = (yyvsp[(3) - (5)].strval); // Store the HTML content
-    ;}
+#line 571 "parser.y"
+    { (yyval.strval) = (yyvsp[(1) - (1)].strval); ;}
     break;
 
   case 23:
 
 /* Line 1455 of yacc.c  */
-#line 324 "parser.y"
-    { (yyval.strval) = strdup(""); ;}
+#line 575 "parser.y"
+    {
+        // Appeler process_import pour analyser le fichier importé
+        process_import((yyvsp[(2) - (5)].strval), (yyvsp[(4) - (5)].strval));
+        
+        // Retourner le nom du composant importé
+        (yyval.strval) = (yyvsp[(2) - (5)].strval);
+        free((yyvsp[(4) - (5)].strval)); // Libérer la chaîne du chemin du fichier
+    ;}
     break;
 
   case 24:
 
 /* Line 1455 of yacc.c  */
-#line 325 "parser.y"
+#line 586 "parser.y"
+    {
+        (yyval.strval) = (yyvsp[(3) - (5)].strval); // Store the HTML content
+    ;}
+    break;
+
+  case 25:
+
+/* Line 1455 of yacc.c  */
+#line 592 "parser.y"
+    { (yyval.strval) = strdup(""); ;}
+    break;
+
+  case 26:
+
+/* Line 1455 of yacc.c  */
+#line 593 "parser.y"
     {
         char *buffer = malloc(strlen((yyvsp[(1) - (2)].strval)) + strlen((yyvsp[(2) - (2)].strval)) + 2);
         sprintf(buffer, "%s%s", (yyvsp[(1) - (2)].strval), (yyvsp[(2) - (2)].strval));
@@ -1803,10 +2083,10 @@ yyreduce:
     ;}
     break;
 
-  case 25:
+  case 27:
 
 /* Line 1455 of yacc.c  */
-#line 332 "parser.y"
+#line 600 "parser.y"
     {
         char *buffer = malloc(strlen((yyvsp[(1) - (2)].strval)) + strlen((yyvsp[(2) - (2)].strval)) + 2);
         sprintf(buffer, "%s%s", (yyvsp[(1) - (2)].strval), (yyvsp[(2) - (2)].strval));
@@ -1815,19 +2095,19 @@ yyreduce:
     ;}
     break;
 
-  case 26:
+  case 28:
 
 /* Line 1455 of yacc.c  */
-#line 338 "parser.y"
+#line 606 "parser.y"
     {
         (yyval.strval) = (yyvsp[(1) - (1)].strval);
     ;}
     break;
 
-  case 27:
+  case 29:
 
 /* Line 1455 of yacc.c  */
-#line 344 "parser.y"
+#line 612 "parser.y"
     {
         // Vérifier que les balises ouvrantes et fermantes correspondent
         if (strcmp((yyvsp[(2) - (9)].strval), (yyvsp[(8) - (9)].strval)) != 0) {
@@ -1841,109 +2121,147 @@ yyreduce:
         char *buffer = malloc(buffer_size);
         
         if (buffer == NULL) {
-            yyerror("Memory allocation failed");
+            yyerror("Erreur d'allocation mémoire");
             YYERROR;
         }
         
-        // Generate HTML code with the element tag
-        sprintf(buffer, "<%s", (yyvsp[(2) - (9)].strval));
-        
-        // Ajouter les attributs si présents
-        if (strlen((yyvsp[(3) - (9)].strval)) > 0) {
-            char *attr_buffer = malloc(strlen((yyvsp[(3) - (9)].strval)) + 1);
-            strcpy(attr_buffer, (yyvsp[(3) - (9)].strval));
-            char *attr_token = strtok(attr_buffer, ";");
+        // Vérifier si c'est un composant importé
+        char *imported_content = find_imported_component((yyvsp[(2) - (9)].strval));
+        if (imported_content != NULL && strlen(imported_content) > 0) {
+            // C'est un composant importé, utiliser son contenu
+            sprintf(buffer, "%s", imported_content);
+            append_to_buffer(buffer);  // Ajouter au buffer de sortie global
+        } else {
+            // Élément HTML normal
+            sprintf(buffer, "<%s", (yyvsp[(2) - (9)].strval));
             
-            while (attr_token != NULL) {
-                char *attr_name = strtok(attr_token, "=");
-                char *attr_value = strtok(NULL, "=");
+            // Ajouter les attributs si présents
+            if (strlen((yyvsp[(3) - (9)].strval)) > 0) {
+                char *attr_buffer = malloc(strlen((yyvsp[(3) - (9)].strval)) + 1);
+                strcpy(attr_buffer, (yyvsp[(3) - (9)].strval));
+                char *attr_token = strtok(attr_buffer, ";");
                 
-                if (attr_name && attr_value) {
-                    // Enlève les espaces de l'attribut
-                    while (*attr_name == ' ') attr_name++;
-                    while (*attr_value == ' ') attr_value++;
+                while (attr_token != NULL) {
+                    char *attr_name = strtok(attr_token, "=");
+                    char *attr_value = strtok(NULL, "=");
                     
-                    // Ajoute l'attribut au buffer dans la balise ouverte
-                    sprintf(buffer + strlen(buffer), " %s=%s", attr_name, attr_value);
+                    if (attr_name && attr_value) {
+                        // Enlève les espaces de l'attribut
+                        while (*attr_name == ' ') attr_name++;
+                        while (*attr_value == ' ') attr_value++;
+                        
+                        // Ajoute l'attribut au buffer dans la balise ouverte
+                        sprintf(buffer + strlen(buffer), " %s=%s", attr_name, attr_value);
+                    }
+                    
+                    attr_token = strtok(NULL, ";");
                 }
                 
-                attr_token = strtok(NULL, ";");
+                free(attr_buffer);
             }
             
-            free(attr_buffer);
+            // Ajouter le contenu de l'élément HTML
+            sprintf(buffer + strlen(buffer), ">%s</%s>", (yyvsp[(5) - (9)].strval), (yyvsp[(2) - (9)].strval));
         }
-        
-        // Ajouter le contenu de l'élément HTML si nécessaire
-        sprintf(buffer + strlen(buffer), ">%s</%s>", (yyvsp[(5) - (9)].strval), (yyvsp[(2) - (9)].strval));
         
         (yyval.strval) = buffer;
         free((yyvsp[(2) - (9)].strval)); free((yyvsp[(3) - (9)].strval)); free((yyvsp[(5) - (9)].strval)); free((yyvsp[(8) - (9)].strval)); 
     ;}
     break;
 
-  case 28:
+  case 30:
 
 /* Line 1455 of yacc.c  */
-#line 395 "parser.y"
-    {
+#line 671 "parser.y"
+    {   
         char *buffer = malloc(1000);
         
-        // Générer le code HTML pour un élément auto-fermant
-        sprintf(buffer, "<%s", (yyvsp[(2) - (5)].strval));  // Commence par la balise d'ouverture
-        
-        // Traitement des attributs similaire à ci-dessus
-        if (strlen((yyvsp[(3) - (5)].strval)) > 0) {
-            char *attr_buffer = malloc(strlen((yyvsp[(3) - (5)].strval)) + 1);
-            strcpy(attr_buffer, (yyvsp[(3) - (5)].strval));
-            char *attr_token = strtok(attr_buffer, ";");
+        // Vérifier si c'est un composant importé
+        char *imported_content = find_imported_component((yyvsp[(2) - (5)].strval));
+        if (imported_content != NULL && strlen(imported_content) > 0) {
+            // C'est un composant importé, utiliser son contenu
+            strcpy(buffer, imported_content);
+            append_to_buffer(buffer);  // Important: ajouter au buffer de sortie global
+        } else {
+            // Élément HTML auto-fermant normal
+            sprintf(buffer, "<%s", (yyvsp[(2) - (5)].strval));
             
-            while (attr_token != NULL) {
-                char *attr_name = strtok(attr_token, "=");
-                char *attr_value = strtok(NULL, "=");
+            // Traiter les attributs comme ci-dessus
+            if (strlen((yyvsp[(3) - (5)].strval)) > 0) {
+                char *attr_buffer = malloc(strlen((yyvsp[(3) - (5)].strval)) + 1);
+                strcpy(attr_buffer, (yyvsp[(3) - (5)].strval));
+                char *attr_token = strtok(attr_buffer, ";");
                 
-                if (attr_name && attr_value) {
-                    // Enlève les espaces
-                    while (*attr_name == ' ') attr_name++;
-                    while (*attr_value == ' ') attr_value++;
+                while (attr_token != NULL) {
+                    char *attr_name = strtok(attr_token, "=");
+                    char *attr_value = strtok(NULL, "=");
                     
-                    // Ajoute l'attribut au buffer dans la balise ouverte
-                    sprintf(buffer + strlen(buffer), " %s=%s", attr_name, attr_value);
+                    if (attr_name && attr_value) {
+                        // Enlève les espaces
+                        while (*attr_name == ' ') attr_name++;
+                        while (*attr_value == ' ') attr_value++;
+                        
+                        // Ajoute l'attribut au buffer dans la balise ouverte
+                        sprintf(buffer + strlen(buffer), " %s=%s", attr_name, attr_value);
+                    }
+                    
+                    attr_token = strtok(NULL, ";");
                 }
                 
-                attr_token = strtok(NULL, ";");
+                free(attr_buffer);
             }
             
-            free(attr_buffer);
+            // Ajouter la balise auto-fermante
+            sprintf(buffer + strlen(buffer), " />");
         }
-        
-        // Ajouter la balise auto-fermante
-        sprintf(buffer + strlen(buffer), " />");
         
         (yyval.strval) = buffer;
         free((yyvsp[(2) - (5)].strval)); free((yyvsp[(3) - (5)].strval));
     ;}
     break;
 
-  case 29:
+  case 31:
 
 /* Line 1455 of yacc.c  */
-#line 432 "parser.y"
+#line 716 "parser.y"
     {
         (yyval.strval) = (yyvsp[(1) - (1)].strval);
     ;}
     break;
 
-  case 30:
+  case 32:
 
 /* Line 1455 of yacc.c  */
-#line 438 "parser.y"
+#line 719 "parser.y"
+    {
+        // Vérifier si c'est un composant importé
+        char* component_content = find_imported_component((yyvsp[(1) - (1)].strval));
+        
+        if (component_content != NULL && strlen(component_content) > 0) {
+            // C'est un composant importé
+            char *buffer = malloc(strlen(component_content) + 1);
+            strcpy(buffer, component_content);
+            (yyval.strval) = buffer;
+        } else {
+            // Ce n'est pas un composant importé, traiter comme un littéral de texte
+            (yyval.strval) = strdup((yyvsp[(1) - (1)].strval));
+        }
+        
+        free((yyvsp[(1) - (1)].strval));
+    ;}
+    break;
+
+  case 33:
+
+/* Line 1455 of yacc.c  */
+#line 737 "parser.y"
     { (yyval.strval) = strdup(""); ;}
     break;
 
-  case 31:
+  case 34:
 
 /* Line 1455 of yacc.c  */
-#line 439 "parser.y"
+#line 738 "parser.y"
     {
         char *buffer = malloc(strlen((yyvsp[(1) - (2)].strval)) + strlen((yyvsp[(2) - (2)].strval)) + 2);
         sprintf(buffer, "%s;%s", (yyvsp[(1) - (2)].strval), (yyvsp[(2) - (2)].strval));
@@ -1952,10 +2270,10 @@ yyreduce:
     ;}
     break;
 
-  case 32:
+  case 35:
 
 /* Line 1455 of yacc.c  */
-#line 448 "parser.y"
+#line 747 "parser.y"
     {
         char *buffer = malloc(strlen((yyvsp[(1) - (3)].strval)) + strlen((yyvsp[(3) - (3)].strval)) + 5);
         sprintf(buffer, "%s=%s", (yyvsp[(1) - (3)].strval), (yyvsp[(3) - (3)].strval));
@@ -1964,30 +2282,43 @@ yyreduce:
     ;}
     break;
 
-  case 33:
+  case 36:
 
 /* Line 1455 of yacc.c  */
-#line 457 "parser.y"
+#line 756 "parser.y"
     {
         char* type = get_identifier_type((yyvsp[(1) - (1)].strval));
         if (type != NULL) {
             // C'est un identifiant connu avec un type
             (yyval.strval) = generate_html_code((yyvsp[(1) - (1)].strval));
         } else {
-            // C'est un littéral de texte
-            char* tmp = malloc(strlen((yyvsp[(1) - (1)].strval)) + 100);
-            sprintf(tmp, "%s", (yyvsp[(1) - (1)].strval));
-            (yyval.strval) = tmp;
+            // Vérifier si c'est un composant importé
+            char* component_content = find_imported_component((yyvsp[(1) - (1)].strval));
+            
+            if (component_content != NULL) {
+                // C'est un composant importé
+                char *buffer = malloc(strlen(component_content) + 100);
+                
+                // Insérer le contenu du composant importé
+                sprintf(buffer, component_content, (yyvsp[(1) - (1)].strval));
+                
+                (yyval.strval) = buffer;
+            } else {
+                // C'est un littéral de texte
+                char* tmp = malloc(strlen((yyvsp[(1) - (1)].strval)) + 100);
+                sprintf(tmp, "%s", (yyvsp[(1) - (1)].strval));
+                (yyval.strval) = tmp;
+            }
         }
 
         free((yyvsp[(1) - (1)].strval));
     ;}
     break;
 
-  case 34:
+  case 37:
 
 /* Line 1455 of yacc.c  */
-#line 471 "parser.y"
+#line 783 "parser.y"
     {
         char* type = get_identifier_type((yyvsp[(2) - (3)].strval));
         if (type == NULL) {
@@ -2007,7 +2338,7 @@ yyreduce:
 
 
 /* Line 1455 of yacc.c  */
-#line 2011 "parser.tab.c"
+#line 2342 "parser.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -2219,7 +2550,7 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 487 "parser.y"
+#line 799 "parser.y"
 
 
 void yyerror(const char *s) {
@@ -2232,6 +2563,20 @@ void yyerror(const char *s) {
 int main() {
     yydebug = 1;
     output_buffer[0] = '\0';
-    return yyparse();
+    
+    // Initialiser le stockage des composants importés
+    for (int i = 0; i < MAX_IMPORTED_COMPONENTS; i++) {
+        imported_components[i].name = NULL;
+        imported_components[i].html_content = NULL;
+    }
+    
+    int result = yyparse();
+    
+    // Libérer la mémoire des composants importés
+    for (int i = 0; i < imported_count; i++) {
+        free(imported_components[i].name);
+        free(imported_components[i].html_content);
+    }
+    
+    return result;
 }
-
