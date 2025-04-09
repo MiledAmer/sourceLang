@@ -1,3 +1,8 @@
 sh ./scripts/build.sh  
 sh ./scripts/run.sh input.src code.c
 sh ./scripts/generate_html.sh 
+sh ./scripts/create_vite.sh
+sh ./scripts/integrate_HTML.sh 
+
+URL_Project: C:\\MALIKA\\L3INFO\\PFE\\sourceLang\\malika\\HTML_Parser\\test
+URL_File: C:\\MALIKA\\L3INFO\\PFE\\sourceLang\\malika\\HTML_Parser\\index.html
