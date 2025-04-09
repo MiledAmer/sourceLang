@@ -41,6 +41,28 @@ typedef struct {
     int id_count_backup;
 } ParserState;
 
+// Structure pour les types personnalisés
+typedef struct {
+    char name[50];
+    char fields[10][2][50]; // [nombre_de_champs][nom_ou_type][chaine]
+    int field_count;
+} custom_type;
+
+custom_type custom_types[20]; // Tableau pour stocker les types personnalisés
+int type_count = 0;
+
+// Structure pour stocker les variables
+typedef struct {
+    char name[50];
+    char type[50];
+    char value[500];
+    int is_array;
+} variable;
+
+variable variables[100]; // Tableau pour stocker les variables
+int var_count = 0;
+
+
 void append_to_buffer(const char *str) {
     // Make sure we don't overflow the buffer
     size_t current_len = strlen(output_buffer);
@@ -51,6 +73,68 @@ void append_to_buffer(const char *str) {
     } else {
         fprintf(stderr, "Warning: Output buffer overflow prevented\n");
     }
+}
+
+void add_custom_type(char* name) {
+    printf("DEBUG: Ajout du type %s, type_count = %d\n", name, type_count);
+    fflush(stdout);
+    strcpy(custom_types[type_count].name, name);
+    custom_types[type_count].field_count = 0;
+    type_count++;
+}
+
+void add_field_to_type(char* field_name, char* field_type) {
+    printf("DEBUG: Ajout du champ %s de type %s au type_count = %d\n", 
+           field_name, field_type, type_count-1);
+    fflush(stdout);
+    
+    if (type_count <= 0) {
+        printf("ERREUR: Tentative d'ajout d'un champ sans type défini\n");
+        fflush(stdout);
+        return;
+    }
+    
+    strcpy(custom_types[type_count-1].fields[custom_types[type_count-1].field_count][0], field_name);
+    strcpy(custom_types[type_count-1].fields[custom_types[type_count-1].field_count][1], field_type);
+    custom_types[type_count-1].field_count++;
+}
+
+void generate_structs_and_prototypes() {
+    
+    for (int i = 0; i < type_count; i++) {
+        printf("typedef struct {\n");
+        fflush(stdout);
+        
+        for (int j = 0; j < custom_types[i].field_count; j++) {
+            char* field_type = custom_types[i].fields[j][1];
+            if (strcmp(field_type, "string") == 0) {
+                printf("    char* ");
+            } else {
+                printf("    ");
+                printf(field_type);
+                printf(" ");
+            }
+            printf(custom_types[i].fields[j][0]);
+            printf(";\n");
+            fflush(stdout);
+        }
+        
+        printf("} ");
+        printf(custom_types[i].name);
+        printf(";\n");
+        fflush(stdout);
+    }
+    
+    
+}
+
+// Fonction pour ajouter une variable
+void add_variable(char* name, char* type, char* value, int is_array) {
+    strcpy(variables[var_count].name, name);
+    strcpy(variables[var_count].type, type);
+    strcpy(variables[var_count].value, value);
+    variables[var_count].is_array = is_array;
+    var_count++;
 }
 
 // Fonction pour générer un fichier HTML avec le contenu du buffer
@@ -216,7 +300,7 @@ void process_import(char* component, char* path) {
                             
                             // Créer un div englobant avec le nom du composant comme classe
                             char final_html[10000] = {0};
-                            sprintf(final_html, "<div class='%s'>\n%s\n</div>", component, html_content);
+                            sprintf(final_html, "<div id='%s'>\n%s\n</div>", component, html_content);
                             
                             // Ajouter le composant importé à notre registre
                             add_imported_component(component, final_html);
@@ -243,71 +327,6 @@ void process_import(char* component, char* path) {
     // printf("Import du composant %s terminé\n", component);
 }
 
-// Alternative: Utiliser une approche par système de commande externe
-void process_import_external(char* component, char* path) {
-    // Enlever les guillemets du chemin
-    char real_path[256];
-    strncpy(real_path, path + 1, strlen(path) - 2);
-    real_path[strlen(path) - 2] = '\0';
-    
-    // Vérifier si le chemin est relatif
-    if (real_path[0] != '/' && strncmp(real_path, "./", 2) != 0) {
-        char temp[256];
-        sprintf(temp, "./%s", real_path);
-        strcpy(real_path, temp);
-    }
-    
-    printf("Traitement externe du composant %s depuis %s\n", component, real_path);
-    
-    // Créer un fichier temporaire pour stocker le composant
-    char temp_file[256];
-    sprintf(temp_file, "/tmp/%s_component.html", component);
-    
-    // Lancer un processus externe pour traiter le fichier composant
-    char command[1024];
-    sprintf(command, "cp %s /tmp/temp_component.src && ./parser /tmp/temp_component.src > %s", 
-            real_path, temp_file);
-    
-    int result = system(command);
-    if (result != 0) {
-        fprintf(stderr, "Erreur lors de l'exécution de la commande: %s\n", command);
-        // Créer un composant minimal en cas d'échec
-        char minimal_html[1000];
-        sprintf(minimal_html, "<div class='%s'><!-- Échec du traitement du composant %s --></div>", 
-                component, component);
-        add_imported_component(component, minimal_html);
-    } else {
-        // Lire le fichier HTML généré
-        FILE* html_file = fopen(temp_file, "r");
-        if (html_file) {
-            char html_content[10000] = {0};
-            size_t bytes_read = fread(html_content, 1, sizeof(html_content) - 1, html_file);
-            html_content[bytes_read] = '\0';
-            
-            // Extraire le contenu entre <body> et </body>
-            char* body_start = strstr(html_content, "<body>");
-            char* body_end = strstr(html_content, "</body>");
-            
-            if (body_start && body_end) {
-                body_start += 6;  // Passer après <body>
-                *body_end = '\0'; // Terminer la chaîne à </body>
-                
-                // Ajouter le composant importé à notre registre
-                add_imported_component(component, body_start);
-                // printf("Composant importé %s ajouté avec le contenu:\n%s\n", component, body_start);
-            } else {
-                // Si on ne trouve pas les balises body, utiliser tout le contenu
-                add_imported_component(component, html_content);
-                // printf("Composant importé %s ajouté (sans balises body)\n", component);
-            }
-            
-            fclose(html_file);
-            
-            // Nettoyer le fichier temporaire
-            remove(temp_file);
-        }
-    }
-}
 %}
 
 %union {
@@ -326,11 +345,20 @@ void process_import_external(char* component, char* path) {
 program:
     element {
         liberer_pile();
-        
+        // Before calling generate_structs_and_prototypes()
+        printf("// Définition des types personnalisés\n");
+        fflush(stdout);
+
+        // Call the function
+        generate_structs_and_prototypes();
+
+        // After calling
+        fflush(stdout);
         // Écrire les en-têtes nécessaires
         printf("#include <stdio.h>\n");
         printf("#include <stdlib.h>\n");
         printf("#include <string.h>\n\n");
+        
         
         // Déclarer le buffer global
         printf("char output_buffer[10000] = {\n");
@@ -395,6 +423,13 @@ program:
         printf("#include <stdlib.h>\n");
         printf("#include <string.h>\n\n");
         
+        // Before calling generate_structs_and_prototypes()
+        printf("// Définition des types personnalisés\n");
+        
+
+        // Call the function
+        generate_structs_and_prototypes();
+
         // Déclarer le buffer global
         printf("char output_buffer[10000] = {\n");
         
@@ -532,9 +567,11 @@ instruction:
 ;
 
 type_instruction:
-    TYPE IDENTIFIER EQUALS LBRACE type_properties RBRACE SEMICOLON {
+    TYPE IDENTIFIER EQUALS {add_custom_type($2);}
+    LBRACE type_properties RBRACE SEMICOLON {
         // Générer une instruction de type
         $$ = $2; // Store the type name
+        
     }
 ;
 
@@ -556,6 +593,7 @@ type_property:
         char *buffer = malloc(strlen($1) + strlen($3) + 10);
         sprintf(buffer, "%s: %s;\n", $1, $3);
         $$ = buffer;
+        add_field_to_type($1, $3);
         free($1); free($3);
     }
 ;

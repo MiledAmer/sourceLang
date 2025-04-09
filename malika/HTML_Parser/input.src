@@ -1,5 +1,6 @@
 import cardComponent from "./cardComponent.src";
 import userProfile from "./userProfile.src";
+
 component main (){
 
     return(
