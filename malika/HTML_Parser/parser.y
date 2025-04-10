@@ -76,8 +76,6 @@ void append_to_buffer(const char *str) {
 }
 
 void add_custom_type(char* name) {
-    printf("DEBUG: Ajout du type %s, type_count = %d\n", name, type_count);
-    fflush(stdout);
     strcpy(custom_types[type_count].name, name);
     custom_types[type_count].field_count = 0;
     type_count++;
@@ -100,7 +98,6 @@ void add_field_to_type(char* field_name, char* field_type) {
 }
 
 void generate_structs_and_prototypes() {
-    
     for (int i = 0; i < type_count; i++) {
         printf("typedef struct {\n");
         fflush(stdout);
@@ -124,8 +121,6 @@ void generate_structs_and_prototypes() {
         printf(";\n");
         fflush(stdout);
     }
-    
-    
 }
 
 // Fonction pour ajouter une variable
@@ -315,7 +310,7 @@ void process_import(char* component, char* path) {
     // Si l'analyse manuelle n'a pas fonctionné, créer un composant minimal
     if (find_imported_component(component) == NULL) {
         char minimal_html[1000];
-        sprintf(minimal_html, "<div class='%s'><!-- Contenu du composant %s non analysé --></div>", 
+        sprintf(minimal_html, "<div id='%s'><!-- Contenu du composant %s non analysé --></div>", 
                 component, component);
         add_imported_component(component, minimal_html);
         // printf("Impossible d'analyser le composant %s. Utilisation d'un composant minimal.\n", component);
@@ -431,7 +426,7 @@ program:
         generate_structs_and_prototypes();
 
         // Déclarer le buffer global
-        printf("char output_buffer[10000] = {\n");
+        printf("\nchar output_buffer[10000] = {\n");
         
         // Remplir le buffer avec le contenu HTML généré
         printf("    \"");

@@ -1,16 +1,25 @@
+DEBUG: Ajout du champ name de type string au type_count = 0
+DEBUG: Ajout du champ age de type int au type_count = 0
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+// Définition des types personnalisés
+typedef struct {
+    char* name;
+    int age;
+} User;
+
 char output_buffer[10000] = {
     "<div class='main'>\n"
-    "<div><h1>hello</h1><div class='cardComponent'>\n"
+    "User\n"
+    "<div><h1>hello</h1><div id='cardComponent'>\n"
     "\n"
     "        <div>\n"
     "            <h2>World</h2>\n"
     "        </div>\n"
     "    \n"
-    "</div><div class='userProfile'>\n"
+    "</div><div id='userProfile'>\n"
     "\n"
     "        <p>Malika</p>\n"
     "    \n"
