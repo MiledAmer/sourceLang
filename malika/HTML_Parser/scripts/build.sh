@@ -37,7 +37,7 @@ fi
 # Compile everything with GCC
 echo "Compiling with GCC..."
 # gcc -o transpiler lex.yy.c parser.tab.c
-gcc -g -o transpiler.exe lex.yy.c parser.tab.c 
+gcc -g -o transpiler.exe lex.yy.c parser.tab.c lib/*.c 
 
 
 # Check if the executable was generated
