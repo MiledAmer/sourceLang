@@ -44,6 +44,7 @@ typedef struct {
     int id_count_backup;
 } ParserState;
 
+   
 // Structure pour les types personnalisés
 typedef struct {
     char name[50];
@@ -51,6 +52,10 @@ typedef struct {
     int field_count;
 } custom_type;
 
+char fields[10][2][50]; // For storing field names and types during type definition
+char field_values[20][100]; // For storing values during initialization
+int value_count = 0; 
+int field_count = 0;  // Nombre de champs dans le type actuel
 custom_type custom_types[20]; // Tableau pour stocker les types personnalisés
 int type_count = 0;
 
@@ -79,8 +84,18 @@ void append_to_buffer(const char *str) {
 
 void add_custom_type(char* name) {
     strcpy(custom_types[type_count].name, name);
-    custom_types[type_count].field_count = 0;
+    custom_types[type_count].field_count = field_count;
+    
+    // Copier tous les champs
+    for (int i = 0; i < field_count; i++) {
+        strcpy(custom_types[type_count].fields[i][0], fields[i][0]); // nom
+        strcpy(custom_types[type_count].fields[i][1], fields[i][1]); // type
+    }
+    
     type_count++;
+    
+    // Réinitialiser le compteur pour le prochain type
+    field_count = 0;
 }
 
 void add_field_to_type(char* field_name, char* field_type) {
@@ -336,7 +351,6 @@ void process_import(char* component, char* path) {
     // printf("Import du composant %s terminé\n", component);
 }
 
-
 bool verify_type(char* type) {
     // Check built-in types first
     if (strcmp(type, "string") == 0 || 
@@ -358,54 +372,41 @@ bool verify_type(char* type) {
     return false;
 }
 
-// Main type compatibility function
-bool check_type_compatibility(const char* var_type, const char* value_str) {
-    // For string literals
-    if (value_str[0] == '"' && strcmp(var_type, "string") == 0) {
-        return true;
-    }
-    
-    // For numeric literals - basic check for numbers vs strings
-    if (isdigit(value_str[0]) || (value_str[0] == '-' && isdigit(value_str[1]))) {
-        if (strcmp(var_type, "number") == 0 || strcmp(var_type, "int") == 0) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-    
-    // For boolean literals
-    if (strcmp(value_str, "true") == 0 || strcmp(value_str, "false") == 0) {
-        if (strcmp(var_type, "boolean") == 0) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-    
-    // For variables - check if the value is a variable and if its type matches
-    for (int i = 0; i < var_count; i++) {
-        if (strcmp(variables[i].name, value_str) == 0) {
-            // Found the variable being used as a value, check type compatibility
-            return strcmp(variables[i].type, var_type) == 0;
-        }
-    }
-    
-    // For custom types - check if the value is a custom type instance
+// Fonction pour trouver un type personnalisé
+custom_type* find_custom_type(char* type_name) {
     for (int i = 0; i < type_count; i++) {
-        if (strcmp(custom_types[i].name, var_type) == 0) {
-            // Check if value references an object of this custom type
-            for (int j = 0; j < var_count; j++) {
-                if (strcmp(variables[j].name, value_str) == 0 && 
-                    strcmp(variables[j].type, var_type) == 0) {
-                    return true;
-                }
-            }
-            return false;
+        if (strcmp(custom_types[i].name, type_name) == 0) {
+            return &custom_types[i];
+        }
+    }
+    return NULL;
+}
+
+// Main type compatibility function
+bool check_field_value_compatibility(char* field_type, char* value) {
+    // Pour les chaînes
+    if (strcmp(field_type, "string") == 0) {
+        return value[0] == '"'; // Vérifie si la valeur commence par des guillemets
+    }
+    // Pour les nombres
+    else if (strcmp(field_type, "int") == 0 || strcmp(field_type, "number") == 0) {
+        // Vérifier si la valeur est un nombre
+        char* endptr;
+        strtol(value, &endptr, 10);
+        return *endptr == '\0';
+    }
+    // Pour les booléens
+    else if (strcmp(field_type, "boolean") == 0) {
+        return (strcmp(value, "true") == 0 || strcmp(value, "false") == 0);
+    }
+    
+    // Vérifier si c'est une variable du bon type
+    for (int i = 0; i < var_count; i++) {
+        if (strcmp(variables[i].name, value) == 0) {
+            return strcmp(variables[i].type, field_type) == 0;
         }
     }
     
-    // Fallback - unknown type relationship
     return false;
 }
 
@@ -421,7 +422,7 @@ bool check_type_compatibility(const char* var_type, const char* value_str) {
 %token LT GT SLASH
 %token <strval> IDENTIFIER STRING_LITERAL
 %type <strval> element parameters parameter function html_content html_inner attributes attribute html_element function_body variable_instruction
-%type <strval> type_instruction type_properties type_property import_instruction return_instruction instructions instruction import_instructions
+%type <strval> type_instruction type_properties type_property import_instruction return_instruction instructions instruction import_instructions field_value_list 
 %token <strval> NUMBER_LITERAL BOOLEAN_LITERAL
 %%
 
@@ -648,14 +649,15 @@ instruction:
         // Générer une instruction de type
         $$ = $1; // Store the type name
     }
-    | return_instruction {
-        // Générer une instruction de retour
-        $$ = $1; // Store the return value
-    }
     |variable_instruction{
         // Générer une instruction de variable
         $$ = $1; // Store the variable name
     }
+    | return_instruction {
+        // Générer une instruction de retour
+        $$ = $1; // Store the return value
+    }
+    
 ;
 
 type_instruction:
@@ -695,10 +697,115 @@ return_instruction:
         $$ = $3; // Store the HTML content
     }
 ;
-// Updated variable_instruction rule implementation
-// This would replace your current variable_instruction rules in yacc
+
+field_value_list:
+    STRING_LITERAL {
+        strcpy(field_values[value_count++], $1);
+        free($1);
+    }
+    | NUMBER_LITERAL {
+        strcpy(field_values[value_count++], $1);
+        free($1);
+    }
+    | BOOLEAN_LITERAL {
+        strcpy(field_values[value_count++], $1);
+        free($1);
+    }
+    | IDENTIFIER {
+        strcpy(field_values[value_count++], $1);
+        free($1);
+    }
+    | field_value_list COMMA STRING_LITERAL {
+        strcpy(field_values[value_count++], $3);
+        free($3);
+    }
+    | field_value_list COMMA NUMBER_LITERAL {
+        strcpy(field_values[value_count++], $3);
+        free($3);
+    }
+    | field_value_list COMMA BOOLEAN_LITERAL {
+        strcpy(field_values[value_count++], $3);
+        free($3);
+    }
+    | field_value_list COMMA IDENTIFIER {
+        strcpy(field_values[value_count++], $3);
+        free($3);
+    }
+;
+
 variable_instruction:
-    IDENTIFIER COLON IDENTIFIER EQUALS STRING_LITERAL SEMICOLON {
+    IDENTIFIER COLON IDENTIFIER EQUALS field_value_list SEMICOLON {
+        char* var_name = $1;
+        char* type_name = $3;
+        
+        // Vérifier si la variable existe déjà
+        for (int i = 0; i < var_count; i++) {
+            if (strcmp(variables[i].name, var_name) == 0) {
+                char error_msg[256];
+                snprintf(error_msg, sizeof(error_msg), "Error: Variable '%s' already declared", var_name);
+                yyerror(error_msg);
+                YYERROR;
+                break;
+            }
+        }
+        
+        // Trouver le type personnalisé
+        custom_type* type = find_custom_type(type_name);
+        if (type == NULL) {
+            // Vérifier si c'est un type primitif
+            if (verify_type(type_name)) {
+                // Gérer les types primitifs ici
+                // ...
+            } else {
+                char error_msg[256];
+                snprintf(error_msg, sizeof(error_msg), "Error: Type '%s' is not defined", type_name);
+                yyerror(error_msg);
+                YYERROR;
+            }
+        } else {
+            // C'est un type personnalisé - vérifier les valeurs
+            if (value_count != type->field_count) {
+                char error_msg[256];
+                snprintf(error_msg, sizeof(error_msg), 
+                       "Error: Expected %d values for type '%s', got %d",
+                       type->field_count, type_name, value_count);
+                yyerror(error_msg);
+                YYERROR;
+            } else {
+                // Vérifier chaque valeur de champ
+                for (int i = 0; i < value_count; i++) {
+                    if (!check_field_value_compatibility(type->fields[i][1], field_values[i])) {
+                        char error_msg[256];
+                        snprintf(error_msg, sizeof(error_msg), 
+                               "Type error: Cannot assign '%s' to field '%s' of type '%s'",
+                               field_values[i], type->fields[i][0], type->fields[i][1]);
+                        yyerror(error_msg);
+                        YYERROR;
+                        break;
+                    }
+                }
+                
+                // Tous les contrôles sont passés, ajouter la variable
+                // Combiner les valeurs dans une chaîne pour le stockage
+                char value_str[1024] = "";
+                for (int i = 0; i < value_count; i++) {
+                    strcat(value_str, field_values[i]);
+                    if (i < value_count - 1) {
+                        strcat(value_str, ",");
+                    }
+                }
+                
+                add_variable(var_name, type_name, value_str, 1); // 1 = type personnalisé
+            }
+        }
+        
+        // Réinitialiser le compteur de valeurs
+        value_count = 0;
+        $$ = strdup(var_name); // Return the variable name for further processing if needed
+        free(var_name);
+        free(type_name);
+    }
+    |IDENTIFIER COLON IDENTIFIER EQUALS STRING_LITERAL SEMICOLON {
         // Check if variable is already declared
         int var_exists = 0;
         printf("//Checking if variable exists: %s\n", $1);
@@ -892,7 +999,6 @@ variable_instruction:
     }
 ;
 
-
 import_instructions:
     import_instructions import_instruction {
         // Combine import instructions
@@ -1042,22 +1148,6 @@ html_element:
     }
     | html_inner {
         $$ = $1;
-    }
-    | IDENTIFIER {
-        // Vérifier si c'est un composant importé
-        char* component_content = find_imported_component($1);
-        
-        if (component_content != NULL && strlen(component_content) > 0) {
-            // C'est un composant importé
-            char *buffer = malloc(strlen(component_content) + 1);
-            strcpy(buffer, component_content);
-            $$ = buffer;
-        } else {
-            // Ce n'est pas un composant importé, traiter comme un littéral de texte
-            $$ = strdup($1);
-        }
-        
-        free($1);
     }
 ;
 attributes:
