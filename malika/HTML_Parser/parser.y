@@ -2,6 +2,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
+#include <stdbool.h>
+
 
 extern int yylex();
 void yyerror(const char *s);
@@ -62,7 +65,6 @@ typedef struct {
 variable variables[100]; // Tableau pour stocker les variables
 int var_count = 0;
 
-
 void append_to_buffer(const char *str) {
     // Make sure we don't overflow the buffer
     size_t current_len = strlen(output_buffer);
@@ -82,10 +84,6 @@ void add_custom_type(char* name) {
 }
 
 void add_field_to_type(char* field_name, char* field_type) {
-    printf("DEBUG: Ajout du champ %s de type %s au type_count = %d\n", 
-           field_name, field_type, type_count-1);
-    fflush(stdout);
-    
     if (type_count <= 0) {
         printf("ERREUR: Tentative d'ajout d'un champ sans type défini\n");
         fflush(stdout);
@@ -124,14 +122,29 @@ void generate_structs_and_prototypes() {
 }
 
 // Fonction pour ajouter une variable
-void add_variable(char* name, char* type, char* value, int is_array) {
+int add_variable(char* name, char* type, char* value, int is_array) {
+    printf("//Adding variable: %s, type: %s, value: %s\n", name, type, value);
     strcpy(variables[var_count].name, name);
     strcpy(variables[var_count].type, type);
     strcpy(variables[var_count].value, value);
     variables[var_count].is_array = is_array;
     var_count++;
+    return 0;
 }
-
+// declared variables
+void declare_variables() {
+    for (int i = 0; i < var_count; i++) {
+        if (strcmp(variables[i].type, "string") == 0) {
+            printf("char* %s = %s;\n", variables[i].name, variables[i].value);
+        } else if (strcmp(variables[i].type, "number") == 0 || strcmp(variables[i].type, "int") == 0) {
+            printf("int %s = %s;\n", variables[i].name, variables[i].value);
+        } else if (strcmp(variables[i].type, "boolean") == 0) {
+            printf("bool %s = %s;\n", variables[i].name, variables[i].value);
+        } else {
+            printf("%s %s=%s;\n",variables[i].type ,variables[i].name, variables[i].value);
+        }
+    }
+}
 // Fonction pour générer un fichier HTML avec le contenu du buffer
 void generate_html(const char *filename) {
     FILE *file = fopen(filename, "w");
@@ -245,6 +258,7 @@ void add_imported_component(const char* name, const char* html_content) {
         fprintf(stderr, "Error: Maximum number of imported components reached\n");
     }
 }
+
 void process_import(char* component, char* path) {
     // Enlever les guillemets du chemin
     char real_path[256];
@@ -322,6 +336,79 @@ void process_import(char* component, char* path) {
     // printf("Import du composant %s terminé\n", component);
 }
 
+
+bool verify_type(char* type) {
+    // Check built-in types first
+    if (strcmp(type, "string") == 0 || 
+        strcmp(type, "number") == 0 ||
+        strcmp(type, "boolean") == 0 ||
+        strcmp(type, "char*") == 0 ||
+        strcmp(type, "int") == 0) {
+        return true;
+    }
+    
+    // Then check custom types
+    for (int i = 0; i < type_count; i++) {
+        if (strcmp(custom_types[i].name, type) == 0) {
+            return true;  
+        }
+    }
+    
+    // Type not found
+    return false;
+}
+
+// Main type compatibility function
+bool check_type_compatibility(const char* var_type, const char* value_str) {
+    // For string literals
+    if (value_str[0] == '"' && strcmp(var_type, "string") == 0) {
+        return true;
+    }
+    
+    // For numeric literals - basic check for numbers vs strings
+    if (isdigit(value_str[0]) || (value_str[0] == '-' && isdigit(value_str[1]))) {
+        if (strcmp(var_type, "number") == 0 || strcmp(var_type, "int") == 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    // For boolean literals
+    if (strcmp(value_str, "true") == 0 || strcmp(value_str, "false") == 0) {
+        if (strcmp(var_type, "boolean") == 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    // For variables - check if the value is a variable and if its type matches
+    for (int i = 0; i < var_count; i++) {
+        if (strcmp(variables[i].name, value_str) == 0) {
+            // Found the variable being used as a value, check type compatibility
+            return strcmp(variables[i].type, var_type) == 0;
+        }
+    }
+    
+    // For custom types - check if the value is a custom type instance
+    for (int i = 0; i < type_count; i++) {
+        if (strcmp(custom_types[i].name, var_type) == 0) {
+            // Check if value references an object of this custom type
+            for (int j = 0; j < var_count; j++) {
+                if (strcmp(variables[j].name, value_str) == 0 && 
+                    strcmp(variables[j].type, var_type) == 0) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+    
+    // Fallback - unknown type relationship
+    return false;
+}
+
 %}
 
 %union {
@@ -333,8 +420,9 @@ void process_import(char* component, char* path) {
 %token LBRACE RBRACE LPAREN RPAREN COLON TYPE SEMICOLON FROM IMPORT COMMA
 %token LT GT SLASH
 %token <strval> IDENTIFIER STRING_LITERAL
-%type <strval> element parameters parameter function html_content html_inner attributes attribute html_element function_body
+%type <strval> element parameters parameter function html_content html_inner attributes attribute html_element function_body variable_instruction
 %type <strval> type_instruction type_properties type_property import_instruction return_instruction instructions instruction import_instructions
+%token <strval> NUMBER_LITERAL BOOLEAN_LITERAL
 %%
 
 program:
@@ -345,8 +433,10 @@ program:
         fflush(stdout);
 
         // Call the function
-        generate_structs_and_prototypes();
-
+        generate_structs_and_prototypes(); 
+        // Déclarer les variables
+        printf("// Déclaration des variables\n");
+        declare_variables(); 
         // After calling
         fflush(stdout);
         // Écrire les en-têtes nécessaires
@@ -425,6 +515,9 @@ program:
         // Call the function
         generate_structs_and_prototypes();
 
+        // Déclarer les variables
+        printf("// Déclaration des variables\n");
+        declare_variables(); 
         // Déclarer le buffer global
         printf("\nchar output_buffer[10000] = {\n");
         
@@ -491,7 +584,7 @@ element:
         output_buffer[0] = '\0';
         
         // Generate HTML component wrapper
-        sprintf(buffer, "<div class='%s'>\n%s\n</div>", $2, $6);
+        sprintf(buffer, "<div id='%s'>\n%s\n</div>", $2, $6);
         
         // Append to the global output buffer
         append_to_buffer(buffer);
@@ -559,6 +652,10 @@ instruction:
         // Générer une instruction de retour
         $$ = $1; // Store the return value
     }
+    |variable_instruction{
+        // Générer une instruction de variable
+        $$ = $1; // Store the variable name
+    }
 ;
 
 type_instruction:
@@ -593,6 +690,209 @@ type_property:
     }
 ;
 
+return_instruction:
+    RETURN LPAREN html_content RPAREN SEMICOLON {
+        $$ = $3; // Store the HTML content
+    }
+;
+// Updated variable_instruction rule implementation
+// This would replace your current variable_instruction rules in yacc
+variable_instruction:
+    IDENTIFIER COLON IDENTIFIER EQUALS STRING_LITERAL SEMICOLON {
+        // Check if variable is already declared
+        int var_exists = 0;
+        printf("//Checking if variable exists: %s\n", $1);
+        
+        for (int i = 0; i < var_count; i++) {
+            if (strcmp(variables[i].name, $1) == 0) {
+                var_exists = 1;
+                char error_msg[256];
+                snprintf(error_msg, sizeof(error_msg), "Error: Variable '%s' is already declared", $1);
+                yyerror(error_msg);
+                break;
+            }
+        }
+     
+        if (!var_exists) {
+            // Verify type exists
+            if (verify_type($3)) {
+                // Check type compatibility between declared type and value
+                if (strcmp($3, "string") == 0 && $5[0] == '"') {
+                    // String type with string literal value - compatible
+                    add_variable($1, $3, $5, 0);
+                    $$ = strdup($1);
+                } else {
+                    // Type mismatch
+                    char error_msg[256];
+                    snprintf(error_msg, sizeof(error_msg), 
+                             "Type error: Cannot assign %s to variable '%s' of type %s", 
+                             $5, $1, $3);
+                    yyerror(error_msg);
+                    YYERROR;
+                }
+            } else {
+                // Type doesn't exist
+                char error_msg[256];
+                snprintf(error_msg, sizeof(error_msg), "Error: Type '%s' is not defined", $3);
+                yyerror(error_msg);
+                YYERROR;
+            }
+        }
+        
+        // Free memory
+        free($1); free($3); free($5);
+    }
+    | IDENTIFIER COLON IDENTIFIER EQUALS IDENTIFIER SEMICOLON {
+        // Check if variable is already declared
+        int var_exists = 0;
+        printf("Checking if variable exists: %s\n", $1);
+        
+        for (int i = 0; i < var_count; i++) {
+            if (strcmp(variables[i].name, $1) == 0) {
+                var_exists = 1;
+                char error_msg[256];
+                snprintf(error_msg, sizeof(error_msg), "Error: Variable '%s' is already declared", $1);
+                yyerror(error_msg);
+                break;
+            }
+        }
+        
+        if (!var_exists) {
+            // Verify type exists
+            if (verify_type($3)) {
+                // Check if the value identifier exists and is compatible
+                int value_var_exists = 0;
+                char* value_type = NULL;
+                
+                for (int i = 0; i < var_count; i++) {
+                    if (strcmp(variables[i].name, $5) == 0) {
+                        value_var_exists = 1;
+                        value_type = variables[i].type;
+                        break;
+                    }
+                }
+                
+                if (!value_var_exists) {
+                    // The value is not a known variable
+                    char error_msg[256];
+                    snprintf(error_msg, sizeof(error_msg), 
+                             "Error: Undefined identifier '%s' used as value", $5);
+                    yyerror(error_msg);
+                    YYERROR;
+                } else if (strcmp(value_type, $3) != 0) {
+                    // Type mismatch between value and variable
+                    char error_msg[256];
+                    snprintf(error_msg, sizeof(error_msg), 
+                             "Type error: Cannot assign value of type '%s' to variable '%s' of type '%s'", 
+                             value_type, $1, $3);
+                    yyerror(error_msg);
+                    YYERROR;
+                } else {
+                    // Types match, add the variable
+                    add_variable($1, $3, $5, 0);
+                    $$ = strdup($1);
+                }
+            } else {
+                // Type doesn't exist
+                char error_msg[256];
+                snprintf(error_msg, sizeof(error_msg), "Error: Type '%s' is not defined", $3);
+                yyerror(error_msg);
+                YYERROR;
+            }
+        }
+        
+        // Free memory
+        free($1); free($3); free($5);
+    }
+    | IDENTIFIER COLON IDENTIFIER EQUALS NUMBER_LITERAL SEMICOLON {
+        // Check if variable is already declared
+        int var_exists = 0;
+        
+        for (int i = 0; i < var_count; i++) {
+            if (strcmp(variables[i].name, $1) == 0) {
+                var_exists = 1;
+                char error_msg[256];
+                snprintf(error_msg, sizeof(error_msg), "Error: Variable '%s' is already declared", $1);
+                yyerror(error_msg);
+                break;
+            }
+        }
+        
+        if (!var_exists) {
+            // Verify type exists
+            if (verify_type($3)) {
+                // Check type compatibility
+                if (strcmp($3, "number") == 0 || strcmp($3, "int") == 0) {
+                    // Number type with number literal value - compatible
+                    add_variable($1, $3, $5, 0);
+                    $$ = strdup($1);
+                } else {
+                    // Type mismatch
+                    char error_msg[256];
+                    snprintf(error_msg, sizeof(error_msg), 
+                             "Type error: Cannot assign numeric value to variable '%s' of type '%s'", 
+                             $1, $3);
+                    yyerror(error_msg);
+                    YYERROR;
+                }
+            } else {
+                // Type doesn't exist
+                char error_msg[256];
+                snprintf(error_msg, sizeof(error_msg), "Error: Type '%s' is not defined", $3);
+                yyerror(error_msg);
+                YYERROR;
+            }
+        }
+        
+        // Free memory
+        free($1); free($3); free($5);
+    }
+    | IDENTIFIER COLON IDENTIFIER EQUALS BOOLEAN_LITERAL SEMICOLON {
+        // Check if variable is already declared
+        int var_exists = 0;
+        
+        for (int i = 0; i < var_count; i++) {
+            if (strcmp(variables[i].name, $1) == 0) {
+                var_exists = 1;
+                char error_msg[256];
+                snprintf(error_msg, sizeof(error_msg), "Error: Variable '%s' is already declared", $1);
+                yyerror(error_msg);
+                break;
+            }
+        }
+        
+        if (!var_exists) {
+            // Verify type exists
+            if (verify_type($3)) {
+                // Check type compatibility
+                if (strcmp($3, "boolean") == 0) {
+                    // Boolean type with boolean literal value - compatible
+                    add_variable($1, $3, $5, 0);
+                    $$ = strdup($1);
+                } else {
+                    // Type mismatch
+                    char error_msg[256];
+                    snprintf(error_msg, sizeof(error_msg), 
+                             "Type error: Cannot assign boolean value to variable '%s' of type '%s'", 
+                             $1, $3);
+                    yyerror(error_msg);
+                    YYERROR;
+                }
+            } else {
+                // Type doesn't exist
+                char error_msg[256];
+                snprintf(error_msg, sizeof(error_msg), "Error: Type '%s' is not defined", $3);
+                yyerror(error_msg);
+                YYERROR;
+            }
+        }
+        
+        // Free memory
+        free($1); free($3); free($5);
+    }
+;
+
+
 import_instructions:
     import_instructions import_instruction {
         // Combine import instructions
@@ -612,12 +912,6 @@ import_instruction:
         // Retourner le nom du composant importé
         $$ = $2;
         free($4); // Libérer la chaîne du chemin du fichier
-    }
-;
-
-return_instruction:
-    RETURN LPAREN html_content RPAREN SEMICOLON {
-        $$ = $3; // Store the HTML content
     }
 ;
 
