@@ -2,11 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include "customType.h"
+#include "variable.h"
 
 char fields[10][2][50]; // For storing field names and types during type definition
-char field_values[20][100]; // For storing values during initialization
-int value_count = 0; 
-int field_count = 0;  // Nombre de champs dans le type actuel
 custom_type custom_types[20]; // Tableau pour stocker les types personnalisés
 int type_count = 0;
 

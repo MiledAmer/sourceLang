@@ -9,7 +9,7 @@ if [ ! -f lexer.l ]; then
     exit 1
 fi
 
-if [ ! -f parser.y ]; then
+if [ ! -f parser.y ]; then  
     echo "Error: parser.y file not found!"
     exit 1
 fi

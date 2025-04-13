@@ -9,7 +9,6 @@ typedef struct {
 } custom_type;
 
 extern char fields[10][2][50]; // For storing field names and types during type definition
-extern char field_values[20][100]; // For storing values during initialization
 extern custom_type custom_types[20]; // Tableau pour stocker les types personnalisés
 extern int value_count ; 
 extern int field_count;  

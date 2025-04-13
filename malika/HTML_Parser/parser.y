@@ -15,6 +15,7 @@ extern FILE *yyin;
 extern void yyrestart(FILE* input_file);
 #define YYDEBUG 1
 
+
 char output_buffer[10000];
 char interfaces_buffer[1000];  // Buffer pour les interfaces TypeScript
 // int id_count = 0;
@@ -71,7 +72,7 @@ void generate_html(const char *filename) {
     printf("HTML file generated successfully: %s\n", filename);
 }
 
-// Fonction pour générer le code HTML pur selon le type
+// // Fonction pour générer le code HTML pur selon le type
 char* generate_html_code(const char* id_name) {
     char* id_type = get_identifier_type(id_name);
     char* buffer = malloc(1000);
@@ -113,9 +114,9 @@ void liberer_pile() {
 
 %token COMPONENT RETURN EQUALS 
 %token LBRACE RBRACE LPAREN RPAREN COLON TYPE SEMICOLON FROM IMPORT COMMA
-%token LT GT SLASH
+%token LT GT SLASH DOT 
 %token <strval> IDENTIFIER STRING_LITERAL
-%type <strval> element parameters parameter function html_content html_inner attributes attribute html_element function_body variable_instruction
+%type <strval> element parameters parameter function html_content html_inner attributes attribute html_element function_body variable_instruction identifiant_interpole
 %type <strval> type_instruction type_properties type_property import_instruction return_instruction instructions instruction import_instructions field_value_list 
 %token <strval> NUMBER_LITERAL BOOLEAN_LITERAL
 %%
@@ -391,127 +392,204 @@ return_instruction:
         $$ = $3; // Store the HTML content
     }
 ;
-
 field_value_list:
-    STRING_LITERAL {
-        strcpy(field_values[value_count++], $1);
-        free($1);
+    LBRACE field_values RBRACE {
+        // Traitement terminé, résultat déjà stocké dans field_names et field_values
+        $$ = strdup(""); // Simplement pour éviter les erreurs de syntaxe
     }
-    | NUMBER_LITERAL {
-        strcpy(field_values[value_count++], $1);
-        free($1);
-    }
-    | BOOLEAN_LITERAL {
-        strcpy(field_values[value_count++], $1);
-        free($1);
-    }
-    | IDENTIFIER {
-        strcpy(field_values[value_count++], $1);
-        free($1);
-    }
-    | field_value_list COMMA STRING_LITERAL {
-        strcpy(field_values[value_count++], $3);
-        free($3);
-    }
-    | field_value_list COMMA NUMBER_LITERAL {
-        strcpy(field_values[value_count++], $3);
-        free($3);
-    }
-    | field_value_list COMMA BOOLEAN_LITERAL {
-        strcpy(field_values[value_count++], $3);
-        free($3);
-    }
-    | field_value_list COMMA IDENTIFIER {
-        strcpy(field_values[value_count++], $3);
-        free($3);
+    | LBRACE RBRACE {
+        // Cas d'un objet vide
+        $$ = strdup("");
     }
 ;
+
+field_values:
+    field_values COMMA field_value {
+        // Ajoute simplement une nouvelle paire field_name:value
+    }
+    | field_value {
+        // Premier champ
+    }
+;
+
+field_value:
+    IDENTIFIER COLON value {
+        // Stocker le nom du champ
+        if (field_count < MAX_FIELDS) {
+            strcpy(field_names[field_count], $1);
+            // La valeur a déjà été stockée dans field_values par la règle value
+            field_count++;
+        } else {
+            yyerror("Too many fields");
+        }
+        free($1);
+    }
+;
+
 value:
     STRING_LITERAL {
-        strcpy(field_values[value_count++], $1);
+        if (value_count < MAX_VALUES) {
+            strcpy(field_values[value_count], $1);
+            field_types[value_count] = TYPE_STRING;
+            value_count++;
+        }
         free($1);
     }
     | NUMBER_LITERAL {
-        strcpy(field_values[value_count++], $1);
+        if (value_count < MAX_VALUES) {
+            strcpy(field_values[value_count], $1);
+            field_types[value_count] = TYPE_NUMBER;
+            value_count++;
+        }
         free($1);
     }
     | BOOLEAN_LITERAL {
-        strcpy(field_values[value_count++], $1);
+        if (value_count < MAX_VALUES) {
+            strcpy(field_values[value_count], $1);
+            field_types[value_count] = TYPE_BOOLEAN;
+            value_count++;
+        }
         free($1);
     }
     | IDENTIFIER {
-        strcpy(field_values[value_count++], $1);
+        if (value_count < MAX_VALUES) {
+            strcpy(field_values[value_count], $1);
+            field_types[value_count] = TYPE_IDENTIFIER;
+            value_count++;
+        }
         free($1);
     }
 ;
+
 variable_instruction:
     IDENTIFIER COLON IDENTIFIER EQUALS field_value_list SEMICOLON {
         char* var_name = $1;
         char* type_name = $3;
+        int is_valid = 1;
+        
+        // Vérifier d'abord si le type existe
+        custom_type* type = find_custom_type(type_name);
+        int is_primitive_type = verify_type(type_name);
+        
+        if (type == NULL && !is_primitive_type) {
+            char error_msg[256];
+            snprintf(error_msg, sizeof(error_msg), "Error: Type '%s' is not defined", type_name);
+            yyerror(error_msg);
+            is_valid = 0;
+        }
         
         // Vérifier si la variable existe déjà
-        for (int i = 0; i < var_count; i++) {
-            if (strcmp(variables[i].name, var_name) == 0) {
-                char error_msg[256];
-                snprintf(error_msg, sizeof(error_msg), "Error: Variable '%s' already declared", var_name);
-                yyerror(error_msg);
-                YYERROR;
-                break;
-            }
+        if (is_valid && check_variable_exists(var_name)) {
+            char error_msg[256];
+            snprintf(error_msg, sizeof(error_msg), "Error: Variable '%s' already declared", var_name);
+            yyerror(error_msg);
+            is_valid = 0;
         }
         
-        // Trouver le type personnalisé
-        custom_type* type = find_custom_type(type_name);
-        if (type == NULL) {
-            // Vérifier si c'est un type primitif
-            if (verify_type(type_name)) {
-                // Gérer les types primitifs ici
-                // ...
-            } else {
-                char error_msg[256];
-                snprintf(error_msg, sizeof(error_msg), "Error: Type '%s' is not defined", type_name);
-                yyerror(error_msg);
-                YYERROR;
-            }
-        } else {
-            // C'est un type personnalisé - vérifier les valeurs
-            if (value_count != type->field_count) {
-                char error_msg[256];
-                snprintf(error_msg, sizeof(error_msg), 
-                       "Error: Expected %d values for type '%s', got %d",
-                       type->field_count, type_name, value_count);
-                yyerror(error_msg);
-                YYERROR;
-            } else {
-                // Vérifier chaque valeur de champ
-                for (int i = 0; i < value_count; i++) {
-                    if (!check_field_value_compatibility(type->fields[i][1], field_values[i])) {
+        if (is_valid) {
+            if (type != NULL) {
+                // C'est un type personnalisé - vérifier les attributs et leurs valeurs
+                // Créer une table de hachage temporaire pour vérifier les champs fournis
+                int field_provided[MAX_FIELDS] = {0}; // Pour marquer les champs fournis
+                
+                // Vérifier si tous les champs fournis existent dans le type
+                for (int i = 0; i < field_count && is_valid; i++) {
+                    int field_found = 0;
+                    
+                    for (int j = 0; j < type->field_count; j++) {
+                        if (strcmp(field_names[i], type->fields[j][0]) == 0) {
+                            field_found = 1;
+                            field_provided[j] = 1; // Marquer ce champ comme fourni
+                            
+                            // Vérifier la compatibilité du type pour ce champ
+                            if (!check_field_value_compatibility(type->fields[j][1], field_values[i], field_types[i])) {
+                                char error_msg[256];
+                                snprintf(error_msg, sizeof(error_msg), 
+                                       "Type error: Cannot assign '%s' to field '%s' of type '%s'",
+                                       field_values[i], field_names[i], type->fields[j][1]);
+                                yyerror(error_msg);
+                                is_valid = 0;
+                            }
+                            break;
+                        }
+                    }
+                    
+                    if (!field_found) {
                         char error_msg[256];
                         snprintf(error_msg, sizeof(error_msg), 
-                               "Type error: Cannot assign '%s' to field '%s' of type '%s'",
-                               field_values[i], type->fields[i][0], type->fields[i][1]);
+                               "Error: Field '%s' does not exist in type '%s'",
+                               field_names[i], type_name);
                         yyerror(error_msg);
-                        YYERROR;
-                        break;
+                        is_valid = 0;
                     }
                 }
                 
-                // Tous les contrôles sont passés, ajouter la variable
-                // Combiner les valeurs dans une chaîne pour le stockage
-                char value_str[1024] = "";
-                for (int i = 0; i < value_count; i++) {
-                    strcat(value_str, field_values[i]);
-                    if (i < value_count - 1) {
-                        strcat(value_str, ",");
+                // Vérifier que tous les champs requis sont fournis
+                for (int j = 0; j < type->field_count && is_valid; j++) {
+                    if (!field_provided[j] && type->fields[j][2] != NULL && strcmp(type->fields[j][2], "required") == 0) {
+                        char error_msg[256];
+                        snprintf(error_msg, sizeof(error_msg), 
+                               "Error: Required field '%s' of type '%s' is missing",
+                               type->fields[j][0], type_name);
+                        yyerror(error_msg);
+                        is_valid = 0;
                     }
                 }
                 
-                add_variable(var_name, type_name, value_str, 1); // 1 = type personnalisé
+                if (is_valid) {
+                    char value_buffer[500] = "{";
+                    for (int i = 0; i < field_count; i++) {
+                        char field_entry[128];
+                        
+                        // Ajouter des guillemets autour des strings
+                        if (field_types[i]== 0) {
+                            snprintf(field_entry, sizeof(field_entry), "%s=\"%s\"", field_names[i], field_values[i]);
+                        } else {
+                            snprintf(field_entry, sizeof(field_entry), "%s=%s", field_names[i], field_values[i]);
+                        }
+
+                        strcat(value_buffer, field_entry);
+                        if (i < field_count - 1) {
+                            strcat(value_buffer, ", ");
+                        }
+                    }
+                    strcat(value_buffer, "}");
+
+                    // Appel existant (inchangé) avec la vraie valeur maintenant
+                    add_variable(var_name, type_name, value_buffer, 0);
+
+                }
+            } else if (is_primitive_type) {
+                // C'est un type primitif
+                if (field_count != 1) {
+                    char error_msg[256];
+                    snprintf(error_msg, sizeof(error_msg), 
+                           "Error: Primitive type '%s' expects single value, got %d values", 
+                           type_name, field_count);
+                    yyerror(error_msg);
+                    is_valid = 0;
+                } else if (!check_primitive_type_compatibility(type_name, field_values[0], field_types[0])) {
+                    char error_msg[256];
+                    snprintf(error_msg, sizeof(error_msg), 
+                           "Type error: Cannot assign '%s' to variable of type '%s'", 
+                           field_values[0], type_name);
+                    yyerror(error_msg);
+                    is_valid = 0;
+                } else {
+                    // Ajouter la variable primitive
+                    add_variable(var_name, type_name, field_values[0], 0); // 0 = type primitif
+                }
             }
         }
         
-        // Réinitialiser le compteur de valeurs
+        // Réinitialiser les compteurs
+        field_count = 0;
         value_count = 0;
+        
+        if (!is_valid) {
+            YYERROR;
+        }
+        
         $$ = strdup(var_name); // Return the variable name for further processing if needed
         free(var_name);
         free(type_name);
@@ -519,56 +597,123 @@ variable_instruction:
     |IDENTIFIER COLON IDENTIFIER EQUALS value SEMICOLON {
         char* var_name = $1;
         char* type_name = $3;
-        char* value_str = field_values[value_count-1]; // Get the last stored value
+        int is_valid = 1;
         
-        // Check if variable already exists
-        for (int i = 0; i < var_count; i++) {
-            if (strcmp(variables[i].name, var_name) == 0) {
+        // Vérifier que la valeur a bien été ajoutée
+        if (value_count != 1) {
+            char error_msg[256];
+            snprintf(error_msg, sizeof(error_msg), "Error: Expected 1 value, got %d", value_count);
+            yyerror(error_msg);
+            is_valid = 0;
+        } else {
+            char* value_str = field_values[0];
+            
+            // Vérifier si la variable existe déjà
+            if (check_variable_exists(var_name)) {
                 char error_msg[256];
                 snprintf(error_msg, sizeof(error_msg), "Error: Variable '%s' already declared", var_name);
                 yyerror(error_msg);
-                YYERROR;
-                break;
+                is_valid = 0;
+            }
+            
+            if (is_valid) {
+                // Vérifier si c'est un type personnalisé
+                custom_type* type = find_custom_type(type_name);
+                if (type != NULL) {
+                    char error_msg[256];
+                    snprintf(error_msg, sizeof(error_msg), 
+                           "Error: Custom type '%s' requires %d values", type_name, type->field_count);
+                    yyerror(error_msg);
+                    is_valid = 0;
+                } 
+                // Vérifier si c'est un type primitif valide
+                else if (!verify_type(type_name)) {
+                    char error_msg[256];
+                    snprintf(error_msg, sizeof(error_msg), "Error: Type '%s' is not defined", type_name);
+                    yyerror(error_msg);
+                    is_valid = 0;
+                }
+                // Vérifier la compatibilité des types
+                else if (!check_primitive_type_compatibility(type_name, value_str, field_types[0])) {
+                    char error_msg[256];
+                    snprintf(error_msg, sizeof(error_msg), 
+                           "Type error: Cannot assign '%s' to variable of type '%s'", 
+                           value_str, type_name);
+                    yyerror(error_msg);
+                    is_valid = 0;
+                }
+                else {
+                    // Ajouter la variable
+                    add_variable(var_name, type_name, value_str, 0); // 0 = type primitif
+                }
             }
         }
         
-        // Make sure it's not a custom type
-        custom_type* type = find_custom_type(type_name);
-        if (type != NULL) {
-            char error_msg[256];
-            snprintf(error_msg, sizeof(error_msg), 
-                   "Error: Custom type '%s' requires multiple values", type_name);
-            yyerror(error_msg);
+        // Réinitialiser le compteur de valeurs
+        value_count = 0;
+        
+        if (!is_valid) {
             YYERROR;
-        } 
-        // Verify it's a valid primitive type
-        else if (!verify_type(type_name)) {
-            char error_msg[256];
-            snprintf(error_msg, sizeof(error_msg), "Error: Type '%s' is not defined", type_name);
-            yyerror(error_msg);
-            YYERROR;
-        }
-        // Check type compatibility
-        else if (!check_primitive_type_compatibility(type_name, value_str)) {
-            char error_msg[256];
-            snprintf(error_msg, sizeof(error_msg), 
-                   "Type error: Cannot assign '%s' to variable of type '%s'", 
-                   value_str, type_name);
-            yyerror(error_msg);
-            YYERROR;
-        }
-        else {
-            // Add the variable
-            add_variable(var_name, type_name, value_str, 0); // 0 = primitive type
         }
         
-        // Reset value counter
-        value_count = 0;
         $$ = strdup(var_name);
         free(var_name);
         free(type_name);
     }
 ;
+identifiant_interpole:
+    IDENTIFIER {
+        // Vérifier si l'identifiant existe
+        char* type = get_identifier_type($1);
+        if (check_variable_exists($1) == 0) {
+            char error_msg[100];
+            sprintf(error_msg, "Erreur : L'identifiant %s n'est pas défini.", $1);
+            yyerror(error_msg);
+            YYERROR;
+        }
+        
+        // Obtenir la valeur via get_value (gère simple & structuré)
+        char* value = get_value($1, NULL);
+        if (value == NULL) {
+            char error_msg[100];
+            sprintf(error_msg, "Erreur : Impossible d'obtenir la valeur de %s", $1);
+            yyerror(error_msg);
+            YYERROR;
+        }
+        
+        $$ = value;  // déjà dupliqué dans get_value
+        
+        free($1); // Libérer la chaîne d'origine
+        
+    }    
+    |IDENTIFIER DOT IDENTIFIER {
+        // Vérifier si le champ existe dans la structure
+        char* var_name = $1;
+        char* field_name = $3;
+        
+        // Vérifier si la variable existe
+        if (check_variable_exists(var_name) == 0) {
+            char error_msg[100];
+            sprintf(error_msg, "Erreur : L'identifiant %s n'est pas une variable définie.", var_name);
+            yyerror(error_msg);
+            YYERROR;
+        }
+        
+        // Obtenir la valeur via get_value (gère simple & structuré)
+        char* value = get_value(var_name, field_name);
+        if (value == NULL) {
+            char error_msg[100];
+            sprintf(error_msg, "Erreur : Impossible d'obtenir la valeur de %s.%s", var_name, field_name);
+            yyerror(error_msg);
+            YYERROR;
+        }
+        
+        $$ = value;  // déjà dupliqué dans get_value
+        
+        free($1); free($3); // Libérer les chaînes d'origine
+    }
+;
+
 
 import_instructions:
     import_instructions import_instruction {
@@ -769,19 +914,8 @@ html_inner:
 
         free($1);
     }
-    | LBRACE IDENTIFIER RBRACE {
-        char* type = get_identifier_type($2);
-        if (type == NULL) {
-            char error_msg[100];
-            sprintf(error_msg, "Erreur : L'identifiant %s n'est pas un paramètre.", $2);
-            append_to_buffer(error_msg);
-            yyerror(error_msg);
-            YYERROR;
-        } else {
-            $$ = generate_html_code($2);
-        }
-
-        free($2);
+    | LBRACE identifiant_interpole RBRACE {
+        $$= $2;
     }
 ;
 

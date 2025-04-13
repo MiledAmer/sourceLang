@@ -23,7 +23,10 @@
 ";"                             { return SEMICOLON; }
 ","                             { return COMMA; }
 ":"                             { return COLON; }
+"."                             { return DOT; }
 \"[^\"]*\"                      { yylval.strval = strdup(yytext); return STRING_LITERAL; }
+[0-9]+(\.[0-9]+)?               { yylval.strval = strdup(yytext); return NUMBER_LITERAL; }
+true|false                      { yylval.strval = strdup(yytext); return BOOLEAN_LITERAL; }
 [a-zA-Z_][a-zA-Z0-9_]*          { yylval.strval = strdup(yytext); return IDENTIFIER; }
 .                               { /* Unexpected character */ }
 [ \t\n]+                          { /* ignore whitespace */ }
