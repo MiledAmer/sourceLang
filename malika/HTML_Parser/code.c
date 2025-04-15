@@ -12,7 +12,16 @@ typedef struct {
 
 char output_buffer[10000] = {
     "<div id='main'>\n"
-    "<div><h1>malika</h1><h1>malika</h1><h3>miled</h3><h1>12</h1><div id='cardComponent'>\n"
+    "\n"
+    "	<div>\n"
+    "	<h1>malika</h1>\n"
+    "	\n"
+    "	<h1>malika</h1>\n"
+    "	\n"
+    "	<h3>miled</h3>\n"
+    "	\n"
+    "	<h1>12</h1>\n"
+    "	<div id='cardComponent'>\n"
     "\n"
     "        <div>\n"
     "            <h2>World</h2>\n"
@@ -23,6 +32,7 @@ char output_buffer[10000] = {
     "        <p>Malika</p>\n"
     "    \n"
     "</div></div>\n"
+    "	\n"
     "</div>"
 };
 

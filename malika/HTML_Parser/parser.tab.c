@@ -2807,7 +2807,7 @@ yyreduce:
             append_to_buffer(buffer);  // Ajouter au buffer de sortie global
         } else {
             // Élément HTML normal
-            sprintf(buffer, "<%s", (yyvsp[(2) - (9)].strval));
+            sprintf(buffer, "\n\t<%s", (yyvsp[(2) - (9)].strval));
             
             // Ajouter les attributs si présents
             if (strlen((yyvsp[(3) - (9)].strval)) > 0) {
@@ -2835,7 +2835,7 @@ yyreduce:
             }
             
             // Ajouter le contenu de l'élément HTML
-            sprintf(buffer + strlen(buffer), ">%s</%s>", (yyvsp[(5) - (9)].strval), (yyvsp[(2) - (9)].strval));
+            sprintf(buffer + strlen(buffer), ">%s</%s>\n\t", (yyvsp[(5) - (9)].strval), (yyvsp[(2) - (9)].strval));
         }
         
         (yyval.strval) = buffer;
@@ -2858,7 +2858,7 @@ yyreduce:
             append_to_buffer(buffer);  // Important: ajouter au buffer de sortie global
         } else {
             // Élément HTML auto-fermant normal
-            sprintf(buffer, "<%s", (yyvsp[(2) - (5)].strval));
+            sprintf(buffer, "\n\t<%s", (yyvsp[(2) - (5)].strval));
             
             // Traiter les attributs comme ci-dessus
             if (strlen((yyvsp[(3) - (5)].strval)) > 0) {
@@ -2886,7 +2886,7 @@ yyreduce:
             }
             
             // Ajouter la balise auto-fermante
-            sprintf(buffer + strlen(buffer), " />");
+            sprintf(buffer + strlen(buffer), " />\n");
         }
         
         (yyval.strval) = buffer;

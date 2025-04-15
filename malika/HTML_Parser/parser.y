@@ -1111,7 +1111,7 @@ html_element:
             append_to_buffer(buffer);  // Ajouter au buffer de sortie global
         } else {
             // Élément HTML normal
-            sprintf(buffer, "<%s", $2);
+            sprintf(buffer, "\n\t<%s", $2);
             
             // Ajouter les attributs si présents
             if (strlen($3) > 0) {
@@ -1139,7 +1139,7 @@ html_element:
             }
             
             // Ajouter le contenu de l'élément HTML
-            sprintf(buffer + strlen(buffer), ">%s</%s>", $5, $2);
+            sprintf(buffer + strlen(buffer), ">%s</%s>\n\t", $5, $2);
         }
         
         $$ = buffer;
@@ -1156,7 +1156,7 @@ html_element:
             append_to_buffer(buffer);  // Important: ajouter au buffer de sortie global
         } else {
             // Élément HTML auto-fermant normal
-            sprintf(buffer, "<%s", $2);
+            sprintf(buffer, "\n\t<%s", $2);
             
             // Traiter les attributs comme ci-dessus
             if (strlen($3) > 0) {
@@ -1184,7 +1184,7 @@ html_element:
             }
             
             // Ajouter la balise auto-fermante
-            sprintf(buffer + strlen(buffer), " />");
+            sprintf(buffer + strlen(buffer), " />\n");
         }
         
         $$ = buffer;
