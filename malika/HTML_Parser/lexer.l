@@ -14,6 +14,8 @@
 "return"                        { return RETURN; }
 "="                             { return EQUALS; }
 "("                             { return LPAREN; }
+"["                             {return LBRACKET; }
+"]"                             {return RBRACKET; }
 ")"                             { return RPAREN; }
 "<"                             {return LT;}
 ">"                             {return GT;}

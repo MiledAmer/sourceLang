@@ -689,15 +689,15 @@ variable_instruction:
         // Verify the base type exists
         if (verify_type(type_name)) {
             // Add variable with is_array flag set to 1
-            char array_value_str[1024] = "[";
+            char array_value_str[1024] = "{";
             for (int i = 0; i < array_value_count; i++) {
                 strcat(array_value_str, array_values[i]);
                 if (i < array_value_count - 1) {
                     strcat(array_value_str, ", ");
                 }
             }
-            strcat(array_value_str, "]");
-            
+            strcat(array_value_str, "}");
+            printf("Array value string: %s\n", array_value_str); // Debugging line
             add_variable(var_name, type_name, array_value_str, 1);
             $$ = strdup(var_name);
             
@@ -747,7 +747,7 @@ variable_instruction:
                 }
             }
             strcat(array_value, "}");
-            
+            printf("Custom array value string: %s\n", array_value); // Debugging line
             // Add the array variable
             add_variable(var_name, type_name, array_value, 1); // 1 = is_array
         }

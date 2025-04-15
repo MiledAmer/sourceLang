@@ -1,3 +1,5 @@
+Custom array value string: {{name = "miled", age = 24}, {name = "malika", age = 22}}
+Array value string: {1, 2, 5, 19}
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,7 +12,7 @@ typedef struct {
 
 char output_buffer[10000] = {
     "<div id='main'>\n"
-    "<div><h1>miled</h1><h1>miled</h1><h1>malika</h1><h1>12</h1><div id='cardComponent'>\n"
+    "<div><h1>malika</h1><h1>malika</h1><h3>miled</h3><h1>12</h1><div id='cardComponent'>\n"
     "\n"
     "        <div>\n"
     "            <h2>World</h2>\n"
@@ -38,7 +40,6 @@ void generate_html(const char *filename) {
     fprintf(file, "<head>\n");
     fprintf(file, "    <meta charset=\"UTF-8\">\n");
     fprintf(file, "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n");
-    fprintf(file, "    <script src=\"https://cdn.tailwindcss.com\"></script>\n");
     fprintf(file, "    <title>Generated Component</title>\n");
     fprintf(file, "</head>\n");
     fprintf(file, "<body>\n");
@@ -46,12 +47,6 @@ void generate_html(const char *filename) {
     // Écrire le contenu du buffer
     fprintf(file, "%s\n", output_buffer);
     
-    // Exemple de génération d'un bouton en C avec des classes Tailwind
-    fprintf(file, "<button class=\"bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded\">\n");
-    fprintf(file, "  Cliquez ici\n");
-    fprintf(file, "</button>\n");
-    // Exemple de génération d'un titre
-    fprintf(file, "<h1 class=\"text-3xl font-bold underline\">Bienvenue</h1>\n");
     // Fermer le document HTML
     fprintf(file, "</body>\n");
     fprintf(file, "</html>\n");
@@ -62,14 +57,24 @@ void generate_html(const char *filename) {
 
 int main(int argc, char *argv[]) {
 // Déclaration des variables
+	// Array of custom type User
+	struct User users[2];
+	users[0].name = malloc(strlen("miled")+1);
+	strcpy(users[0].name, "miled");
+	users[0].age = 24;
+	users[1].name = malloc(strlen("malika")+1);
+	strcpy(users[1].name, "malika");
+	users[1].age = 22;
 
 	User mohamed;
 	mohamed.name = malloc(strlen("miled")+1);
 	strcpy(mohamed.name, "miled");
 	mohamed.age = 24;
 
+	double array[] = {1, 2, 5, 19};
 	char* hello = "malika";
 	int age = 12;
+
     const char *output_file = (argc > 1) ? argv[1] : "output.html";
     generate_html(output_file);
     return 0;

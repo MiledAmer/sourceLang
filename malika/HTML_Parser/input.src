@@ -2,24 +2,36 @@ import cardComponent from "./cardComponent.src";
 import userProfile from "./userProfile.src";
 
 component main (name: string, age:int){
-    type User={
-        name:string;
-        age:number;
+    type User = {
+        name: string;
+        age: number;
     };
 
-    mohamed:User=  {
+    users: User[] = [
+        {
+            name: "miled",
+            age: 24
+        },
+        {
+            name: "malika",
+            age: 22
+        }
+    ];
+    mohamed:User= {
             name:"miled",
             age:24
         };
 
+    array:number[]=[1,2,5,19];
     hello:string ="malika";
     age:number =12;
     
     return(
         <div>
-        <h1>{mohamed.name}</h1>
-        <h1>{mohamed.name}</h1>
+        
+        <h1>{users[1].name}</h1>
         <h1>{hello}</h1>
+        <h3>{mohamed.name}</h3>
         <h1>{age}</h1>
             <cardComponent/>
             <userProfile/>
