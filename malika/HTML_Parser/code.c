@@ -1,5 +1,3 @@
-DEBUG: Ajout du champ name de type string au type_count = 0
-DEBUG: Ajout du champ age de type int au type_count = 0
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,9 +9,8 @@ typedef struct {
 } User;
 
 char output_buffer[10000] = {
-    "<div class='main'>\n"
-    "User\n"
-    "<div><h1>hello</h1><div id='cardComponent'>\n"
+    "<div id='main'>\n"
+    "<div><h1>miled</h1><h1>miled</h1><h1>malika</h1><h1>12</h1><div id='cardComponent'>\n"
     "\n"
     "        <div>\n"
     "            <h2>World</h2>\n"
@@ -57,6 +54,16 @@ void generate_html(const char *filename) {
 }
 
 int main(int argc, char *argv[]) {
+// Déclaration des variables
+
+	User mohamed;
+	mohamed.name = malloc(strlen("miled")+1);
+	strcpy(mohamed.name, "miled");
+	mohamed.age = 24;
+
+	char* hello = "malika";
+	int age = 12;
+    
     const char *output_file = (argc > 1) ? argv[1] : "output.html";
     generate_html(output_file);
     return 0;

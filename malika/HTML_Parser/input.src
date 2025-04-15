@@ -4,12 +4,23 @@ import userProfile from "./userProfile.src";
 component main (name: string, age:int){
     type User={
         name:string;
-        age:int;
+        age:number;
     };
 
+    mohamed:User=  {
+            name:"miled",
+            age:24
+        };
+
+    hello:string ="malika";
+    age:number =12;
+    
     return(
         <div>
-        <h1>hello</h1>
+        <h1>{mohamed.name}</h1>
+        <h1>{mohamed.name}</h1>
+        <h1>{hello}</h1>
+        <h1>{age}</h1>
             <cardComponent/>
             <userProfile/>
         </div>

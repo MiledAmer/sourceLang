@@ -55,8 +55,11 @@
      LT = 271,
      GT = 272,
      SLASH = 273,
-     IDENTIFIER = 274,
-     STRING_LITERAL = 275
+     DOT = 274,
+     IDENTIFIER = 275,
+     STRING_LITERAL = 276,
+     NUMBER_LITERAL = 277,
+     BOOLEAN_LITERAL = 278
    };
 #endif
 
@@ -67,7 +70,7 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 327 "parser.y"
+#line 110 "parser.y"
 
     int intval;
     char* strval;
@@ -75,7 +78,7 @@ typedef union YYSTYPE
 
 
 /* Line 1676 of yacc.c  */
-#line 79 "parser.tab.h"
+#line 82 "parser.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

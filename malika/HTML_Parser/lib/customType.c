@@ -46,7 +46,11 @@ void generate_structs_and_prototypes() {
             char* field_type = custom_types[i].fields[j][1];
             if (strcmp(field_type, "string") == 0) {
                 printf("    char* ");
-            } else {
+            } else if (strcmp(field_type, "number") == 0 || strcmp(field_type, "int") == 0) {
+                printf("    int ");
+            } else if (strcmp(field_type, "boolean") == 0) {
+                printf("    bool ");
+            }else {  
                 printf("    ");
                 printf(field_type);
                 printf(" ");

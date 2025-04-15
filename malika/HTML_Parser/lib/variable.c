@@ -27,11 +27,11 @@ int add_variable(char* name, char* type, char* value, int is_array) {
 void declare_variables() {
     for (int i = 0; i < var_count; i++) {
         if (strcmp(variables[i].type, "string") == 0) {
-            printf("char* %s = %s;\n", variables[i].name, variables[i].value);
+            printf("\tchar* %s = %s;\n", variables[i].name, variables[i].value);
         } else if (strcmp(variables[i].type, "number") == 0 || strcmp(variables[i].type, "int") == 0) {
-            printf("int %s = %s;\n", variables[i].name, variables[i].value);
+            printf("\tint %s = %s;\n", variables[i].name, variables[i].value);
         } else if (strcmp(variables[i].type, "boolean") == 0) {
-            printf("bool %s = %s;\n", variables[i].name, variables[i].value);
+            printf("\tbool %s = %s;\n", variables[i].name, variables[i].value);
         } else if (find_custom_type(variables[i].type)!= NULL) {
             // Si c'est un type personnalisé, on l'affiche comme une structure
             char* var_name = variables[i].name;
@@ -42,7 +42,7 @@ void declare_variables() {
             if (type == NULL) continue;
             printf("\n");
             // Déclaration de la variable
-            printf("%s %s;\n", type_name, var_name);
+            printf("\t%s %s;\n", type_name, var_name);
         
             // Supprimer les accolades { } de raw_value
             char value_copy[500];
@@ -77,10 +77,10 @@ void declare_variables() {
                     // Générer le code d'initialisation
                     if (field_type != NULL) {
                         if (strcmp(field_type, "string") == 0) {
-                            printf("%s.%s = malloc(strlen(%s)+1);\n", var_name, field_name, field_value);
-                            printf("strcpy(%s.%s, %s);\n", var_name, field_name, field_value);
+                            printf("\t%s.%s = malloc(strlen(%s)+1);\n", var_name, field_name, field_value);
+                            printf("\tstrcpy(%s.%s, %s);\n", var_name, field_name, field_value);
                         } else {
-                            printf("%s.%s = %s;\n", var_name, field_name, field_value);
+                            printf("\t%s.%s = %s;\n", var_name, field_name, field_value);
                         }
                     }
                 }

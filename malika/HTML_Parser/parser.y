@@ -130,9 +130,7 @@ program:
 
         // Call the function
         generate_structs_and_prototypes(); 
-        // Déclarer les variables
-        printf("// Déclaration des variables\n");
-        declare_variables(); 
+        
         // After calling
         fflush(stdout);
         // Écrire les en-têtes nécessaires
@@ -191,6 +189,7 @@ program:
         
         // Ajouter une fonction main pour tester
         printf("int main(int argc, char *argv[]) {\n");
+        
         printf("    const char *output_file = (argc > 1) ? argv[1] : \"output.html\";\n");
         printf("    generate_html(output_file);\n");
         printf("    return 0;\n");
@@ -211,9 +210,7 @@ program:
         // Call the function
         generate_structs_and_prototypes();
 
-        // Déclarer les variables
-        printf("// Déclaration des variables\n");
-        declare_variables(); 
+        
         // Déclarer le buffer global
         printf("\nchar output_buffer[10000] = {\n");
         
@@ -264,6 +261,9 @@ program:
         
         // Ajouter une fonction main pour tester
         printf("int main(int argc, char *argv[]) {\n");
+        // Déclarer les variables
+        printf("// Déclaration des variables\n");
+        declare_variables(); 
         printf("    const char *output_file = (argc > 1) ? argv[1] : \"output.html\";\n");
         printf("    generate_html(output_file);\n");
         printf("    return 0;\n");
@@ -332,21 +332,26 @@ function_body:
 instructions:
     instruction { $$ = $1; }
     | instruction instructions {
-        char *buffer = malloc(strlen($1) + strlen($2) + 2);
-        sprintf(buffer, "%s\n%s", $1, $2);
-        $$ = buffer;
-        free($1); free($2);
+        if (strcmp($1," ") == 0) {
+            $$ = $2; // Ignore empty instructions
+        } else {
+            char *buffer = malloc(strlen($1) + strlen($2) + 2);
+            sprintf(buffer, "%s\n%s", $1, $2);
+            $$ = buffer;
+            free($1); free($2);
+        }
+        
     }
 ;
 
 instruction:
     type_instruction {
         // Générer une instruction de type
-        $$ = $1; // Store the type name
+        $$ = strdup(" "); // Store the type name
     }
     |variable_instruction{
         // Générer une instruction de variable
-        $$ = $1; // Store the variable name
+        $$ = strdup(" "); // Store the variable name
     }
     | return_instruction {
         // Générer une instruction de retour
