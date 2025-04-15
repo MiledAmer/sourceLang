@@ -114,10 +114,11 @@ void liberer_pile() {
 
 %token COMPONENT RETURN EQUALS 
 %token LBRACE RBRACE LPAREN RPAREN COLON TYPE SEMICOLON FROM IMPORT COMMA
-%token LT GT SLASH DOT 
+%token LT GT SLASH DOT LBRACKET RBRACKET
 %token <strval> IDENTIFIER STRING_LITERAL
 %type <strval> element parameters parameter function html_content html_inner attributes attribute html_element function_body variable_instruction identifiant_interpole
 %type <strval> type_instruction type_properties type_property import_instruction return_instruction instructions instruction import_instructions field_value_list 
+%type <strval> field_values field_value value custom_type_object custom_type_array_elements array_value array_values
 %token <strval> NUMBER_LITERAL BOOLEAN_LITERAL
 %%
 
@@ -189,7 +190,10 @@ program:
         
         // Ajouter une fonction main pour tester
         printf("int main(int argc, char *argv[]) {\n");
-        
+        // Déclarer les variables
+        printf("// Déclaration des variables\n");
+        declare_variables(); 
+        printf("\n");
         printf("    const char *output_file = (argc > 1) ? argv[1] : \"output.html\";\n");
         printf("    generate_html(output_file);\n");
         printf("    return 0;\n");
@@ -264,6 +268,7 @@ program:
         // Déclarer les variables
         printf("// Déclaration des variables\n");
         declare_variables(); 
+        printf("\n");
         printf("    const char *output_file = (argc > 1) ? argv[1] : \"output.html\";\n");
         printf("    generate_html(output_file);\n");
         printf("    return 0;\n");
@@ -665,7 +670,210 @@ variable_instruction:
         free(var_name);
         free(type_name);
     }
+     // Add this new rule for array declarations
+    | IDENTIFIER COLON IDENTIFIER LBRACKET RBRACKET EQUALS LBRACKET array_values RBRACKET SEMICOLON {
+        char* var_name = $1;
+        char* type_name = $3;
+        
+        // Check if variable already exists
+        for (int i = 0; i < var_count; i++) {
+            if (strcmp(variables[i].name, var_name) == 0) {
+                char error_msg[256];
+                snprintf(error_msg, sizeof(error_msg), "Error: Variable '%s' already declared", var_name);
+                yyerror(error_msg);
+                YYERROR;
+                break;
+            }
+        }
+        
+        // Verify the base type exists
+        if (verify_type(type_name)) {
+            // Add variable with is_array flag set to 1
+            char array_value_str[1024] = "[";
+            for (int i = 0; i < array_value_count; i++) {
+                strcat(array_value_str, array_values[i]);
+                if (i < array_value_count - 1) {
+                    strcat(array_value_str, ", ");
+                }
+            }
+            strcat(array_value_str, "]");
+            
+            add_variable(var_name, type_name, array_value_str, 1);
+            $$ = strdup(var_name);
+            
+            // Reset array_value_count
+            array_value_count = 0;
+        } else {
+            char error_msg[256];
+            snprintf(error_msg, sizeof(error_msg), "Error: Type '%s' is not defined", type_name);
+            yyerror(error_msg);
+            YYERROR;
+        }
+        
+        free(var_name);
+        free(type_name);
+    }
+    | IDENTIFIER COLON IDENTIFIER LBRACKET RBRACKET EQUALS LBRACKET  custom_type_array_elements RBRACKET SEMICOLON {
+        char* var_name = $1;
+        char* type_name = $3;
+        int is_valid = 1;
+        
+        // Check if the type exists and is a custom type
+        custom_type* type = find_custom_type(type_name);
+        if (type == NULL) {
+            char error_msg[256];
+            snprintf(error_msg, sizeof(error_msg), "Error: Custom type '%s' is not defined", type_name);
+            yyerror(error_msg);
+            is_valid = 0;
+        }
+        
+        // Check if variable already exists
+        if (is_valid && check_variable_exists(var_name)) {
+            char error_msg[256];
+            snprintf(error_msg, sizeof(error_msg), "Error: Variable '%s' already declared", var_name);
+            yyerror(error_msg);
+            is_valid = 0;
+        }
+        
+        if (is_valid) {
+            // Format the array of custom type objects
+            char array_value[2048] = "{"; // Larger buffer for complex structures
+            
+            for (int i = 0; i < custom_array_element_count; i++) {
+                strcat(array_value, custom_array_elements[i]);
+                
+                if (i < custom_array_element_count - 1) {
+                    strcat(array_value, ", ");
+                }
+            }
+            strcat(array_value, "}");
+            
+            // Add the array variable
+            add_variable(var_name, type_name, array_value, 1); // 1 = is_array
+        }
+        
+        // Reset array element count
+        custom_array_element_count = 0;
+        
+        if (!is_valid) {
+            YYERROR;
+        }
+        
+        $$ = strdup(var_name);
+        free(var_name);
+        free(type_name);
+    }
 ;
+
+// Add a rule to collect array values
+array_values:
+    array_value {
+        array_values[0] = $1;
+        array_value_count = 1;
+    }
+    | array_values COMMA array_value {
+        if (array_value_count < MAX_ARRAY_VALUES) {
+            array_values[array_value_count++] = $3;
+        } else {
+            yyerror("Too many array values");
+            YYERROR;
+        }
+    }
+;
+
+array_value:
+    NUMBER_LITERAL {
+        $$ = $1;
+    }
+    | STRING_LITERAL {
+        $$ = $1;
+    }
+    | BOOLEAN_LITERAL {
+        $$ = $1;
+    }
+    | IDENTIFIER {
+        // Check if the identifier exists
+        int found = 0;
+        for (int i = 0; i < var_count; i++) {
+            if (strcmp(variables[i].name, $1) == 0) {
+                found = 1;
+                $$ = strdup(variables[i].name);
+                break;
+            }
+        }
+        if (!found) {
+            char error_msg[256];
+            snprintf(error_msg, sizeof(error_msg), "Error: Undefined identifier '%s' used in array", $1);
+            yyerror(error_msg);
+            YYERROR;
+        }
+    }
+;
+
+// Rules for custom type array elements
+custom_type_array_elements:
+    custom_type_object {
+        strcpy(custom_array_elements[0], $1);
+        custom_array_element_count = 1;
+        free($1);
+    }
+    | custom_type_array_elements COMMA custom_type_object {
+        if (custom_array_element_count < MAX_ARRAY_ELEMENTS) {
+            strcpy(custom_array_elements[custom_array_element_count], $3);
+            custom_array_element_count++;
+        } else {
+            yyerror("Too many array elements");
+            YYERROR;
+        }
+        free($3);
+    }
+;
+
+// Rule for a single custom type object
+custom_type_object:
+    LBRACE field_values RBRACE {
+        // Create a temporary buffer for the object
+        char object_str[1024] = "{";
+        int len = 0;
+        
+        for (int i = 0; i < field_count; i++) {
+            // Format each field correctly
+            char field_entry[256];
+            
+            // Handle string value formatting (adding quotes if necessary)
+            if (field_types[i] == TYPE_STRING) {
+                // Check if already quoted
+                if (field_values[i][0] != '"') {
+                    snprintf(field_entry, sizeof(field_entry), "%s = \"%s\"", 
+                             field_names[i], field_values[i]);
+                } else {
+                    snprintf(field_entry, sizeof(field_entry), "%s = %s", 
+                             field_names[i], field_values[i]);
+                }
+            } else {
+                // For non-string types
+                snprintf(field_entry, sizeof(field_entry), "%s = %s", 
+                         field_names[i], field_values[i]);
+            }
+            
+            // Add to the object string
+            strcat(object_str, field_entry);
+            if (i < field_count - 1) {
+                strcat(object_str, ", ");
+            }
+        }
+        
+        strcat(object_str, "}");
+        
+        // Store this object and reset field counters
+        $$ = strdup(object_str);
+        
+        // Reset field_count and value_count for the next object
+        field_count = 0;
+        value_count = 0;
+    }
+;
+
 identifiant_interpole:
     IDENTIFIER {
         // Vérifier si l'identifiant existe
@@ -716,6 +924,121 @@ identifiant_interpole:
         $$ = value;  // déjà dupliqué dans get_value
         
         free($1); free($3); // Libérer les chaînes d'origine
+    }
+    | IDENTIFIER LBRACKET NUMBER_LITERAL RBRACKET {
+        // Array element access
+        char* array_name = $1;
+        char* index_str = $3;
+        
+        // Check if the array exists
+        if (!check_variable_exists(array_name)) {
+            char error_msg[100];
+            sprintf(error_msg, "Error: Undefined array '%s'", array_name);
+            yyerror(error_msg);
+            YYERROR;
+        }
+        
+        // Check if it's actually an array
+        int is_array = 0;
+        for (int i = 0; i < var_count; i++) {
+            if (strcmp(variables[i].name, array_name) == 0) {
+                is_array = variables[i].is_array;
+                break;
+            }
+        }
+        
+        if (!is_array) {
+            char error_msg[100];
+            sprintf(error_msg, "Error: '%s' is not an array", array_name);
+            yyerror(error_msg);
+            YYERROR;
+        }
+        
+        char var_name[100];
+        sprintf(var_name, "%s[%s]", array_name, index_str);
+        char* value = get_value(var_name, NULL);
+        if (value == NULL) {
+            char error_msg[100];
+            sprintf(error_msg, "Erreur : Impossible d'obtenir la valeur de %s", var_name);
+            yyerror(error_msg);
+            YYERROR;
+        }
+        
+        $$ = value;
+        free(array_name);
+        free(index_str);
+    }
+    
+    | IDENTIFIER LBRACKET NUMBER_LITERAL RBRACKET DOT IDENTIFIER {
+        // Access to field in array element
+        char* array_name = $1;
+        char* index_str = $3;
+        char* field_name = $6;
+        
+        // Check if the array exists
+        if (!check_variable_exists(array_name)) {
+            char error_msg[100];
+            sprintf(error_msg, "Error: Undefined array '%s'", array_name);
+            yyerror(error_msg);
+            YYERROR;
+        }
+        
+        // Check if it's actually an array
+        int is_array = 0;
+        char* type_name = NULL;
+        for (int i = 0; i < var_count; i++) {
+            if (strcmp(variables[i].name, array_name) == 0) {
+                is_array = variables[i].is_array;
+                type_name = variables[i].type;
+                break;
+            }
+        }
+        
+        if (!is_array) {
+            char error_msg[100];
+            sprintf(error_msg, "Error: '%s' is not an array", array_name);
+            yyerror(error_msg);
+            YYERROR;
+        }
+        
+        // Check if the array type is a custom type
+        custom_type* type = find_custom_type(type_name);
+        if (type == NULL) {
+            char error_msg[100];
+            sprintf(error_msg, "Error: '%s' is not a custom type", type_name);
+            yyerror(error_msg);
+            YYERROR;
+        }
+        
+        // Check if the field exists in the custom type
+        int field_exists = 0;
+        for (int i = 0; i < type->field_count; i++) {
+            if (strcmp(type->fields[i][0], field_name) == 0) {
+                field_exists = 1;
+                break;
+            }
+        }
+        
+        if (!field_exists) {
+            char error_msg[100];
+            sprintf(error_msg, "Error: Field '%s' does not exist in type '%s'", field_name, type_name);
+            yyerror(error_msg);
+            YYERROR;
+        }
+
+        char var_name[100];
+        sprintf(var_name, "%s[%s]", array_name, index_str);
+        char* value = get_value(var_name, field_name);
+        if (value == NULL) {
+            char error_msg[100];
+            sprintf(error_msg, "Erreur : Impossible d'obtenir la valeur de %s.%s", var_name, field_name);
+            yyerror(error_msg);
+            YYERROR;
+        }
+        $$ = value;
+        free(array_name);
+        free(index_str);
+        free(field_name);
     }
 ;
 

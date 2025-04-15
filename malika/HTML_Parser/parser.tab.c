@@ -128,13 +128,21 @@ void generate_html(const char *filename) {
     fprintf(file, "<head>\n");
     fprintf(file, "    <meta charset=\"UTF-8\">\n");
     fprintf(file, "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n");
+    fprintf(file, "    <script src=\"https://cdn.tailwindcss.com\"></script>\n");
     fprintf(file, "    <title>Generated Component</title>\n");
     fprintf(file, "</head>\n");
     fprintf(file, "<body>\n");
     
     // Écrire le contenu du buffer
     fprintf(file, "%s\n", output_buffer);
-    
+    //test de tailwind 
+    // Exemple de génération d'un bouton en C avec des classes Tailwind
+    fprintf(file, "<button class=\"bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded\">\n");
+    fprintf(file, "  Cliquez ici\n");
+    fprintf(file, "</button>\n");
+
+    // Exemple de génération d'un titre
+    fprintf(file, "<h1 class=\"text-3xl font-bold underline\">Bienvenue</h1>\n");
     // Fermer le document HTML
     fprintf(file, "</body>\n");
     fprintf(file, "</html>\n");
@@ -179,7 +187,7 @@ void liberer_pile() {
 
 
 /* Line 189 of yacc.c  */
-#line 183 "parser.tab.c"
+#line 191 "parser.tab.c"
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
@@ -237,7 +245,7 @@ typedef union YYSTYPE
 {
 
 /* Line 214 of yacc.c  */
-#line 110 "parser.y"
+#line 118 "parser.y"
 
     int intval;
     char* strval;
@@ -245,7 +253,7 @@ typedef union YYSTYPE
 
 
 /* Line 214 of yacc.c  */
-#line 249 "parser.tab.c"
+#line 257 "parser.tab.c"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -257,7 +265,7 @@ typedef union YYSTYPE
 
 
 /* Line 264 of yacc.c  */
-#line 261 "parser.tab.c"
+#line 269 "parser.tab.c"
 
 #ifdef short
 # undef short
@@ -561,12 +569,12 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,   125,   125,   198,   275,   295,   299,   300,   301,   310,
-     320,   326,   327,   333,   334,   348,   352,   356,   364,   364,
-     373,   380,   384,   396,   401,   405,   412,   415,   421,   435,
-     443,   451,   459,   470,   602,   670,   694,   724,   731,   735,
-     746,   747,   754,   760,   766,   825,   870,   876,   877,   886,
-     895,   922
+       0,   133,   133,   213,   297,   317,   321,   322,   323,   332,
+     342,   348,   349,   355,   356,   370,   374,   378,   386,   386,
+     395,   402,   406,   418,   423,   427,   434,   437,   443,   457,
+     465,   473,   481,   492,   624,   692,   716,   746,   753,   757,
+     768,   769,   776,   782,   788,   847,   892,   898,   899,   908,
+     917,   944
 };
 #endif
 
@@ -1537,7 +1545,7 @@ yyreduce:
         case 2:
 
 /* Line 1455 of yacc.c  */
-#line 125 "parser.y"
+#line 133 "parser.y"
     {
         liberer_pile();
         // Before calling generate_structs_and_prototypes()
@@ -1588,6 +1596,7 @@ yyreduce:
         printf("    fprintf(file, \"<head>\\n\");\n");
         printf("    fprintf(file, \"    <meta charset=\\\"UTF-8\\\">\\n\");\n");
         printf("    fprintf(file, \"    <meta name=\\\"viewport\\\" content=\\\"width=device-width, initial-scale=1.0\\\">\\n\");\n");
+        printf("    fprintf(file, \"    <script src=\\\"https://cdn.tailwindcss.com\\\"></script>\\n\");\n");
         printf("    fprintf(file, \"    <title>Generated Component</title>\\n\");\n");
         printf("    fprintf(file, \"</head>\\n\");\n");
         printf("    fprintf(file, \"<body>\\n\");\n");
@@ -1596,6 +1605,12 @@ yyreduce:
         printf("    fprintf(file, \"%%s\\n\", output_buffer);\n");
         printf("    \n");
         printf("    // Fermer le document HTML\n");
+        printf("    // Exemple de génération d'un bouton en C avec des classes Tailwind\n");
+        printf("    fprintf(file, \"<button class=\\\"bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded\\\">\\n\");\n");
+        printf("    fprintf(file, \"  Cliquez ici\\n\");\n");
+        printf("    fprintf(file, \"</button>\\n\");\n");
+        printf("    // Exemple de génération d'un titre\n");
+        printf("    fprintf(file, \"<h1 class=\\\"text-3xl font-bold underline\\\">Bienvenue</h1>\\n\");\n");
         printf("    fprintf(file, \"</body>\\n\");\n");
         printf("    fprintf(file, \"</html>\\n\");\n");
         printf("    \n");
@@ -1616,7 +1631,7 @@ yyreduce:
   case 3:
 
 /* Line 1455 of yacc.c  */
-#line 198 "parser.y"
+#line 213 "parser.y"
     {
         liberer_pile();
         
@@ -1666,6 +1681,7 @@ yyreduce:
         printf("    fprintf(file, \"<head>\\n\");\n");
         printf("    fprintf(file, \"    <meta charset=\\\"UTF-8\\\">\\n\");\n");
         printf("    fprintf(file, \"    <meta name=\\\"viewport\\\" content=\\\"width=device-width, initial-scale=1.0\\\">\\n\");\n");
+        printf("    fprintf(file, \"    <script src=\\\"https://cdn.tailwindcss.com\\\"></script>\\n\");\n");
         printf("    fprintf(file, \"    <title>Generated Component</title>\\n\");\n");
         printf("    fprintf(file, \"</head>\\n\");\n");
         printf("    fprintf(file, \"<body>\\n\");\n");
@@ -1673,6 +1689,12 @@ yyreduce:
         printf("    // Écrire le contenu du buffer\n");
         printf("    fprintf(file, \"%%s\\n\", output_buffer);\n");
         printf("    \n");
+        printf("    // Exemple de génération d'un bouton en C avec des classes Tailwind\n");
+        printf("    fprintf(file, \"<button class=\\\"bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded\\\">\\n\");\n");
+        printf("    fprintf(file, \"  Cliquez ici\\n\");\n");
+        printf("    fprintf(file, \"</button>\\n\");\n");
+        printf("    // Exemple de génération d'un titre\n");
+        printf("    fprintf(file, \"<h1 class=\\\"text-3xl font-bold underline\\\">Bienvenue</h1>\\n\");\n");
         printf("    // Fermer le document HTML\n");
         printf("    fprintf(file, \"</body>\\n\");\n");
         printf("    fprintf(file, \"</html>\\n\");\n");
@@ -1696,7 +1718,7 @@ yyreduce:
   case 4:
 
 /* Line 1455 of yacc.c  */
-#line 275 "parser.y"
+#line 297 "parser.y"
     {
         // Create a buffer with sufficient space
         char buffer[10000] = {0};  // Initialize to zero
@@ -1722,28 +1744,28 @@ yyreduce:
   case 5:
 
 /* Line 1455 of yacc.c  */
-#line 295 "parser.y"
+#line 317 "parser.y"
     { (yyval.strval) = strdup(""); ;}
     break;
 
   case 6:
 
 /* Line 1455 of yacc.c  */
-#line 299 "parser.y"
+#line 321 "parser.y"
     { (yyval.strval) = strdup(""); ;}
     break;
 
   case 7:
 
 /* Line 1455 of yacc.c  */
-#line 300 "parser.y"
+#line 322 "parser.y"
     { (yyval.strval) = (yyvsp[(1) - (1)].strval); ;}
     break;
 
   case 8:
 
 /* Line 1455 of yacc.c  */
-#line 301 "parser.y"
+#line 323 "parser.y"
     {
         char *tmp = malloc(strlen((yyvsp[(1) - (3)].strval)) + strlen((yyvsp[(3) - (3)].strval)) + 3);
         sprintf(tmp, "%s, %s", (yyvsp[(1) - (3)].strval), (yyvsp[(3) - (3)].strval));
@@ -1755,7 +1777,7 @@ yyreduce:
   case 9:
 
 /* Line 1455 of yacc.c  */
-#line 310 "parser.y"
+#line 332 "parser.y"
     {
         char* tmp = malloc(strlen((yyvsp[(1) - (3)].strval)) + strlen((yyvsp[(3) - (3)].strval)) + 3);
         add_identifier((yyvsp[(1) - (3)].strval), (yyvsp[(3) - (3)].strval));
@@ -1768,7 +1790,7 @@ yyreduce:
   case 10:
 
 /* Line 1455 of yacc.c  */
-#line 320 "parser.y"
+#line 342 "parser.y"
     {
         (yyval.strval) = (yyvsp[(2) - (3)].strval); // Simply pass the correctly formatted body up the parse tree
     ;}
@@ -1777,14 +1799,14 @@ yyreduce:
   case 11:
 
 /* Line 1455 of yacc.c  */
-#line 326 "parser.y"
+#line 348 "parser.y"
     { (yyval.strval) = strdup(""); ;}
     break;
 
   case 12:
 
 /* Line 1455 of yacc.c  */
-#line 327 "parser.y"
+#line 349 "parser.y"
     {
         (yyval.strval) = (yyvsp[(1) - (1)].strval); // No need for additional processing, just pass up the instructions
     ;}
@@ -1793,14 +1815,14 @@ yyreduce:
   case 13:
 
 /* Line 1455 of yacc.c  */
-#line 333 "parser.y"
+#line 355 "parser.y"
     { (yyval.strval) = (yyvsp[(1) - (1)].strval); ;}
     break;
 
   case 14:
 
 /* Line 1455 of yacc.c  */
-#line 334 "parser.y"
+#line 356 "parser.y"
     {
         if (strcmp((yyvsp[(1) - (2)].strval)," ") == 0) {
             (yyval.strval) = (yyvsp[(2) - (2)].strval); // Ignore empty instructions
@@ -1817,7 +1839,7 @@ yyreduce:
   case 15:
 
 /* Line 1455 of yacc.c  */
-#line 348 "parser.y"
+#line 370 "parser.y"
     {
         // Générer une instruction de type
         (yyval.strval) = strdup(" "); // Store the type name
@@ -1827,7 +1849,7 @@ yyreduce:
   case 16:
 
 /* Line 1455 of yacc.c  */
-#line 352 "parser.y"
+#line 374 "parser.y"
     {
         // Générer une instruction de variable
         (yyval.strval) = strdup(" "); // Store the variable name
@@ -1837,7 +1859,7 @@ yyreduce:
   case 17:
 
 /* Line 1455 of yacc.c  */
-#line 356 "parser.y"
+#line 378 "parser.y"
     {
         // Générer une instruction de retour
         (yyval.strval) = (yyvsp[(1) - (1)].strval); // Store the return value
@@ -1847,14 +1869,14 @@ yyreduce:
   case 18:
 
 /* Line 1455 of yacc.c  */
-#line 364 "parser.y"
+#line 386 "parser.y"
     {add_custom_type((yyvsp[(2) - (3)].strval));;}
     break;
 
   case 19:
 
 /* Line 1455 of yacc.c  */
-#line 365 "parser.y"
+#line 387 "parser.y"
     {
         // Générer une instruction de type
         (yyval.strval) = (yyvsp[(2) - (8)].strval); // Store the type name
@@ -1865,7 +1887,7 @@ yyreduce:
   case 20:
 
 /* Line 1455 of yacc.c  */
-#line 373 "parser.y"
+#line 395 "parser.y"
     {
         // Combine properties
         char *buffer = malloc(strlen((yyvsp[(1) - (2)].strval)) + strlen((yyvsp[(2) - (2)].strval)) + 2);
@@ -1878,14 +1900,14 @@ yyreduce:
   case 21:
 
 /* Line 1455 of yacc.c  */
-#line 380 "parser.y"
+#line 402 "parser.y"
     { (yyval.strval) = (yyvsp[(1) - (1)].strval); ;}
     break;
 
   case 22:
 
 /* Line 1455 of yacc.c  */
-#line 384 "parser.y"
+#line 406 "parser.y"
     { 
         // Propriété du type : <nom>: <type>
         // Return formatted property
@@ -1900,7 +1922,7 @@ yyreduce:
   case 23:
 
 /* Line 1455 of yacc.c  */
-#line 396 "parser.y"
+#line 418 "parser.y"
     {
         (yyval.strval) = (yyvsp[(3) - (5)].strval); // Store the HTML content
     ;}
@@ -1909,7 +1931,7 @@ yyreduce:
   case 24:
 
 /* Line 1455 of yacc.c  */
-#line 401 "parser.y"
+#line 423 "parser.y"
     {
         // Traitement terminé, résultat déjà stocké dans field_names et field_values
         (yyval.strval) = strdup(""); // Simplement pour éviter les erreurs de syntaxe
@@ -1919,7 +1941,7 @@ yyreduce:
   case 25:
 
 /* Line 1455 of yacc.c  */
-#line 405 "parser.y"
+#line 427 "parser.y"
     {
         // Cas d'un objet vide
         (yyval.strval) = strdup("");
@@ -1929,7 +1951,7 @@ yyreduce:
   case 26:
 
 /* Line 1455 of yacc.c  */
-#line 412 "parser.y"
+#line 434 "parser.y"
     {
         // Ajoute simplement une nouvelle paire field_name:value
     ;}
@@ -1938,7 +1960,7 @@ yyreduce:
   case 27:
 
 /* Line 1455 of yacc.c  */
-#line 415 "parser.y"
+#line 437 "parser.y"
     {
         // Premier champ
     ;}
@@ -1947,7 +1969,7 @@ yyreduce:
   case 28:
 
 /* Line 1455 of yacc.c  */
-#line 421 "parser.y"
+#line 443 "parser.y"
     {
         // Stocker le nom du champ
         if (field_count < MAX_FIELDS) {
@@ -1964,7 +1986,7 @@ yyreduce:
   case 29:
 
 /* Line 1455 of yacc.c  */
-#line 435 "parser.y"
+#line 457 "parser.y"
     {
         if (value_count < MAX_VALUES) {
             strcpy(field_values[value_count], (yyvsp[(1) - (1)].strval));
@@ -1978,7 +2000,7 @@ yyreduce:
   case 30:
 
 /* Line 1455 of yacc.c  */
-#line 443 "parser.y"
+#line 465 "parser.y"
     {
         if (value_count < MAX_VALUES) {
             strcpy(field_values[value_count], (yyvsp[(1) - (1)].strval));
@@ -1992,7 +2014,7 @@ yyreduce:
   case 31:
 
 /* Line 1455 of yacc.c  */
-#line 451 "parser.y"
+#line 473 "parser.y"
     {
         if (value_count < MAX_VALUES) {
             strcpy(field_values[value_count], (yyvsp[(1) - (1)].strval));
@@ -2006,7 +2028,7 @@ yyreduce:
   case 32:
 
 /* Line 1455 of yacc.c  */
-#line 459 "parser.y"
+#line 481 "parser.y"
     {
         if (value_count < MAX_VALUES) {
             strcpy(field_values[value_count], (yyvsp[(1) - (1)].strval));
@@ -2020,7 +2042,7 @@ yyreduce:
   case 33:
 
 /* Line 1455 of yacc.c  */
-#line 470 "parser.y"
+#line 492 "parser.y"
     {
         char* var_name = (yyvsp[(1) - (6)].strval);
         char* type_name = (yyvsp[(3) - (6)].strval);
@@ -2158,7 +2180,7 @@ yyreduce:
   case 34:
 
 /* Line 1455 of yacc.c  */
-#line 602 "parser.y"
+#line 624 "parser.y"
     {
         char* var_name = (yyvsp[(1) - (6)].strval);
         char* type_name = (yyvsp[(3) - (6)].strval);
@@ -2230,7 +2252,7 @@ yyreduce:
   case 35:
 
 /* Line 1455 of yacc.c  */
-#line 670 "parser.y"
+#line 692 "parser.y"
     {
         // Vérifier si l'identifiant existe
         char* type = get_identifier_type((yyvsp[(1) - (1)].strval));
@@ -2260,7 +2282,7 @@ yyreduce:
   case 36:
 
 /* Line 1455 of yacc.c  */
-#line 694 "parser.y"
+#line 716 "parser.y"
     {
         // Vérifier si le champ existe dans la structure
         char* var_name = (yyvsp[(1) - (3)].strval);
@@ -2292,7 +2314,7 @@ yyreduce:
   case 37:
 
 /* Line 1455 of yacc.c  */
-#line 724 "parser.y"
+#line 746 "parser.y"
     {
         // Combine import instructions
         char *buffer = malloc(strlen((yyvsp[(1) - (2)].strval)) + strlen((yyvsp[(2) - (2)].strval)) + 2);
@@ -2305,14 +2327,14 @@ yyreduce:
   case 38:
 
 /* Line 1455 of yacc.c  */
-#line 731 "parser.y"
+#line 753 "parser.y"
     { (yyval.strval) = (yyvsp[(1) - (1)].strval); ;}
     break;
 
   case 39:
 
 /* Line 1455 of yacc.c  */
-#line 735 "parser.y"
+#line 757 "parser.y"
     {
         // Appeler process_import pour analyser le fichier importé
         process_import((yyvsp[(2) - (5)].strval), (yyvsp[(4) - (5)].strval));
@@ -2326,14 +2348,14 @@ yyreduce:
   case 40:
 
 /* Line 1455 of yacc.c  */
-#line 746 "parser.y"
+#line 768 "parser.y"
     { (yyval.strval) = strdup(""); ;}
     break;
 
   case 41:
 
 /* Line 1455 of yacc.c  */
-#line 747 "parser.y"
+#line 769 "parser.y"
     {
         char *buffer = malloc(strlen((yyvsp[(1) - (2)].strval)) + strlen((yyvsp[(2) - (2)].strval)) + 2);
         sprintf(buffer, "%s%s", (yyvsp[(1) - (2)].strval), (yyvsp[(2) - (2)].strval));
@@ -2346,7 +2368,7 @@ yyreduce:
   case 42:
 
 /* Line 1455 of yacc.c  */
-#line 754 "parser.y"
+#line 776 "parser.y"
     {
         char *buffer = malloc(strlen((yyvsp[(1) - (2)].strval)) + strlen((yyvsp[(2) - (2)].strval)) + 2);
         sprintf(buffer, "%s%s", (yyvsp[(1) - (2)].strval), (yyvsp[(2) - (2)].strval));
@@ -2358,7 +2380,7 @@ yyreduce:
   case 43:
 
 /* Line 1455 of yacc.c  */
-#line 760 "parser.y"
+#line 782 "parser.y"
     {
         (yyval.strval) = (yyvsp[(1) - (1)].strval);
     ;}
@@ -2367,7 +2389,7 @@ yyreduce:
   case 44:
 
 /* Line 1455 of yacc.c  */
-#line 766 "parser.y"
+#line 788 "parser.y"
     {
         // Vérifier que les balises ouvrantes et fermantes correspondent
         if (strcmp((yyvsp[(2) - (9)].strval), (yyvsp[(8) - (9)].strval)) != 0) {
@@ -2432,7 +2454,7 @@ yyreduce:
   case 45:
 
 /* Line 1455 of yacc.c  */
-#line 825 "parser.y"
+#line 847 "parser.y"
     {   
         char *buffer = malloc(1000);
         
@@ -2483,7 +2505,7 @@ yyreduce:
   case 46:
 
 /* Line 1455 of yacc.c  */
-#line 870 "parser.y"
+#line 892 "parser.y"
     {
         (yyval.strval) = (yyvsp[(1) - (1)].strval);
     ;}
@@ -2492,14 +2514,14 @@ yyreduce:
   case 47:
 
 /* Line 1455 of yacc.c  */
-#line 876 "parser.y"
+#line 898 "parser.y"
     { (yyval.strval) = strdup(""); ;}
     break;
 
   case 48:
 
 /* Line 1455 of yacc.c  */
-#line 877 "parser.y"
+#line 899 "parser.y"
     {
         char *buffer = malloc(strlen((yyvsp[(1) - (2)].strval)) + strlen((yyvsp[(2) - (2)].strval)) + 2);
         sprintf(buffer, "%s;%s", (yyvsp[(1) - (2)].strval), (yyvsp[(2) - (2)].strval));
@@ -2511,7 +2533,7 @@ yyreduce:
   case 49:
 
 /* Line 1455 of yacc.c  */
-#line 886 "parser.y"
+#line 908 "parser.y"
     {
         char *buffer = malloc(strlen((yyvsp[(1) - (3)].strval)) + strlen((yyvsp[(3) - (3)].strval)) + 5);
         sprintf(buffer, "%s=%s", (yyvsp[(1) - (3)].strval), (yyvsp[(3) - (3)].strval));
@@ -2523,7 +2545,7 @@ yyreduce:
   case 50:
 
 /* Line 1455 of yacc.c  */
-#line 895 "parser.y"
+#line 917 "parser.y"
     {
         char* type = get_identifier_type((yyvsp[(1) - (1)].strval));
         if (type != NULL) {
@@ -2556,7 +2578,7 @@ yyreduce:
   case 51:
 
 /* Line 1455 of yacc.c  */
-#line 922 "parser.y"
+#line 944 "parser.y"
     {
         (yyval.strval)= (yyvsp[(2) - (3)].strval);
     ;}
@@ -2565,7 +2587,7 @@ yyreduce:
 
 
 /* Line 1455 of yacc.c  */
-#line 2569 "parser.tab.c"
+#line 2591 "parser.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -2777,7 +2799,7 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 927 "parser.y"
+#line 949 "parser.y"
 
 
 void yyerror(const char *s) {
