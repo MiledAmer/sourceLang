@@ -38,6 +38,7 @@ void generate_html(const char *filename) {
     fprintf(file, "<head>\n");
     fprintf(file, "    <meta charset=\"UTF-8\">\n");
     fprintf(file, "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n");
+    fprintf(file, "    <script src=\"https://cdn.tailwindcss.com\"></script>\n");
     fprintf(file, "    <title>Generated Component</title>\n");
     fprintf(file, "</head>\n");
     fprintf(file, "<body>\n");
@@ -45,6 +46,12 @@ void generate_html(const char *filename) {
     // Écrire le contenu du buffer
     fprintf(file, "%s\n", output_buffer);
     
+    // Exemple de génération d'un bouton en C avec des classes Tailwind
+    fprintf(file, "<button class=\"bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded\">\n");
+    fprintf(file, "  Cliquez ici\n");
+    fprintf(file, "</button>\n");
+    // Exemple de génération d'un titre
+    fprintf(file, "<h1 class=\"text-3xl font-bold underline\">Bienvenue</h1>\n");
     // Fermer le document HTML
     fprintf(file, "</body>\n");
     fprintf(file, "</html>\n");
@@ -63,7 +70,6 @@ int main(int argc, char *argv[]) {
 
 	char* hello = "malika";
 	int age = 12;
-    
     const char *output_file = (argc > 1) ? argv[1] : "output.html";
     generate_html(output_file);
     return 0;
