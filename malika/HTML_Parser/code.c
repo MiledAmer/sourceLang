@@ -83,9 +83,12 @@ int main(int argc, char *argv[]) {
 
 	double array[] = {1, 2, 5, 19};
 	char* hello = "malika";
-	int age = 12;
+	int year = 12;
+	char* name = "";
+	int age = 0;
 
     const char *output_file = (argc > 1) ? argv[1] : "output.html";
     generate_html(output_file);
     return 0;
 }
+//Résultat du parsing principal : 0
