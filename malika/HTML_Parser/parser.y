@@ -8,18 +8,20 @@
 #include "lib/customType.h"
 #include "lib/variable.h"
 #include "lib/identifier.h"
+#include "parser.tab.h"
 
 extern int yylex();
 void yyerror(const char *s);
 extern FILE *yyin;  
 extern void yyrestart(FILE* input_file);
 #define YYDEBUG 1
-
+bool is_validating_component =true;
 
 char output_buffer[10000];
 char interfaces_buffer[1000];  // Buffer pour les interfaces TypeScript
-// int id_count = 0;
 int found = 0;
+
+
 
 typedef struct {
     FILE* yyin_backup;
@@ -32,7 +34,8 @@ typedef struct {
 
 
 void append_to_buffer(const char *str) {
-    // Make sure we don't overflow the buffer
+    if (is_validating_component) return;
+
     size_t current_len = strlen(output_buffer);
     size_t str_len = strlen(str);
     
@@ -42,6 +45,7 @@ void append_to_buffer(const char *str) {
         fprintf(stderr, "Warning: Output buffer overflow prevented\n");
     }
 }
+
 
 // Fonction pour générer un fichier HTML avec le contenu du buffer
 void generate_html(const char *filename) {
@@ -105,6 +109,45 @@ void liberer_pile() {
     id_count = 0;
 }
 
+void parse_imported_components() {
+    FILE* log_file = fopen("component_parse.log", "w");
+    if (!log_file) {
+        fprintf(stderr, "❌ Impossible d’ouvrir le fichier de log des composants\n");
+        return;
+    }
+
+    // Parcours des composants importés
+    for (int i = 0; i < imported_count; i++) {
+        FILE* file = fopen(imported_components[i].Path, "r");
+        if (!file) {
+            fprintf(log_file, "❌ Erreur ouverture fichier: %s\n", imported_components[i].Path);
+            continue;
+        }
+
+        yyin = file;
+        yyrestart(yyin);  // Réinitialiser le lexer
+
+        fprintf(log_file, "🔍 Vérification de %s... ", imported_components[i].name);
+
+        // Commencer la validation de la syntaxe des composants
+        is_validating_component = true;
+        int parse_status = yyparse();
+        is_validating_component = false;
+
+        if (parse_status == 0) {
+            fprintf(log_file, "✅ OK\n");
+        } else {
+            fprintf(log_file, "❌ Erreur de syntaxe dans le composant %s\n", imported_components[i].name);
+            // Optionnel : détailler l'erreur si possible
+            fprintf(log_file, "Erreur lors du parsing: %s\n", "Détails de l'erreur ici si possible");
+        }
+
+        fclose(file); // Fermer le fichier du composant
+    }
+
+    fclose(log_file);  // Fermer le fichier de log
+}
+
 %}
 
 %union {
@@ -124,160 +167,176 @@ void liberer_pile() {
 
 program:
     element {
-        liberer_pile();
-        // Before calling generate_structs_and_prototypes()
-        printf("// Définition des types personnalisés\n");
-        fflush(stdout);
+        if (!is_validating_component) {
+            liberer_pile();
+            // Before calling generate_structs_and_prototypes()
+            printf("// Définition des types personnalisés\n");
+            fflush(stdout);
 
-        // Call the function
-        generate_structs_and_prototypes(); 
-        
-        // After calling
-        fflush(stdout);
-        // Écrire les en-têtes nécessaires
-        printf("#include <stdio.h>\n");
-        printf("#include <stdlib.h>\n");
-        printf("#include <string.h>\n\n");
-        
-        
-        // Déclarer le buffer global
-        printf("char output_buffer[10000] = {\n");
-        
-        // Remplir le buffer avec le contenu HTML généré
-        printf("    \"");
-        for (size_t i = 0; i < strlen(output_buffer); i++) {
-            if (output_buffer[i] == '\n') {
-                printf("\\n\"\n    \"");
-            } else if (output_buffer[i] == '"') {
-                printf("\\\"");
-            } else if (output_buffer[i] == '\\') {
-                printf("\\\\");
-            } else {
-                printf("%c", output_buffer[i]);
+            // Call the function
+            generate_structs_and_prototypes(); 
+            
+            // After calling
+            fflush(stdout);
+            // Écrire les en-têtes nécessaires
+            printf("#include <stdio.h>\n");
+            printf("#include <stdlib.h>\n");
+            printf("#include <string.h>\n\n");
+            
+            
+            // Déclarer le buffer global
+            printf("char output_buffer[10000] = {\n");
+            
+            // Remplir le buffer avec le contenu HTML généré
+            printf("    \"");
+            for (size_t i = 0; i < strlen(output_buffer); i++) {
+                if (output_buffer[i] == '\n') {
+                    printf("\\n\"\n    \"");
+                } else if (output_buffer[i] == '"') {
+                    printf("\\\"");
+                } else if (output_buffer[i] == '\\') {
+                    printf("\\\\");
+                } else {
+                    printf("%c", output_buffer[i]);
+                }
             }
+            printf("\"\n};\n\n");
+            
+            // Écrire la fonction generate_html
+            printf("// Fonction pour générer un fichier HTML avec le contenu du buffer\n");
+            printf("void generate_html(const char *filename) {\n");
+            printf("    FILE *file = fopen(filename, \"w\");\n");
+            printf("    if (file == NULL) {\n");
+            printf("        fprintf(stderr, \"Error: Failed to open file %%s for writing\\n\", filename);\n");
+            printf("        return;\n");
+            printf("    }\n");
+            printf("    \n");
+            printf("    // Écrire l'en-tête HTML standard\n");
+            printf("    fprintf(file, \"<!DOCTYPE html>\\n\");\n");
+            printf("    fprintf(file, \"<html lang=\\\"en\\\">\\n\");\n");
+            printf("    fprintf(file, \"<head>\\n\");\n");
+            printf("    fprintf(file, \"    <meta charset=\\\"UTF-8\\\">\\n\");\n");
+            printf("    fprintf(file, \"    <meta name=\\\"viewport\\\" content=\\\"width=device-width, initial-scale=1.0\\\">\\n\");\n");
+            printf("    fprintf(file, \"    <title>Generated Component</title>\\n\");\n");
+            printf("    fprintf(file, \"</head>\\n\");\n");
+            printf("    fprintf(file, \"<body>\\n\");\n");
+            printf("    \n");
+            printf("    // Écrire le contenu du buffer\n");
+            printf("    fprintf(file, \"%%s\\n\", output_buffer);\n");
+            printf("    \n");
+            printf("    // Fermer le document HTML\n");
+            printf("    fprintf(file, \"</body>\\n\");\n");
+            printf("    fprintf(file, \"</html>\\n\");\n");
+            printf("    \n");
+            printf("    fclose(file);\n");
+            printf("    printf(\"HTML file generated successfully: %%s\\n\", filename);\n");
+            printf("}\n\n");
+            
+            // Ajouter une fonction main pour tester
+            printf("int main(int argc, char *argv[]) {\n");
+            // Déclarer les variables
+            printf("// Déclaration des variables\n");
+            declare_variables(); 
+            printf("\n");
+            printf("    const char *output_file = (argc > 1) ? argv[1] : \"output.html\";\n");
+            printf("    generate_html(output_file);\n");
+            printf("    return 0;\n");
+            printf("}\n");
+        } else {
+            // Reset the output buffer before processing this component
+            output_buffer[0] = '\0';
         }
-        printf("\"\n};\n\n");
-        
-        // Écrire la fonction generate_html
-        printf("// Fonction pour générer un fichier HTML avec le contenu du buffer\n");
-        printf("void generate_html(const char *filename) {\n");
-        printf("    FILE *file = fopen(filename, \"w\");\n");
-        printf("    if (file == NULL) {\n");
-        printf("        fprintf(stderr, \"Error: Failed to open file %%s for writing\\n\", filename);\n");
-        printf("        return;\n");
-        printf("    }\n");
-        printf("    \n");
-        printf("    // Écrire l'en-tête HTML standard\n");
-        printf("    fprintf(file, \"<!DOCTYPE html>\\n\");\n");
-        printf("    fprintf(file, \"<html lang=\\\"en\\\">\\n\");\n");
-        printf("    fprintf(file, \"<head>\\n\");\n");
-        printf("    fprintf(file, \"    <meta charset=\\\"UTF-8\\\">\\n\");\n");
-        printf("    fprintf(file, \"    <meta name=\\\"viewport\\\" content=\\\"width=device-width, initial-scale=1.0\\\">\\n\");\n");
-        printf("    fprintf(file, \"    <title>Generated Component</title>\\n\");\n");
-        printf("    fprintf(file, \"</head>\\n\");\n");
-        printf("    fprintf(file, \"<body>\\n\");\n");
-        printf("    \n");
-        printf("    // Écrire le contenu du buffer\n");
-        printf("    fprintf(file, \"%%s\\n\", output_buffer);\n");
-        printf("    \n");
-        printf("    // Fermer le document HTML\n");
-        printf("    fprintf(file, \"</body>\\n\");\n");
-        printf("    fprintf(file, \"</html>\\n\");\n");
-        printf("    \n");
-        printf("    fclose(file);\n");
-        printf("    printf(\"HTML file generated successfully: %%s\\n\", filename);\n");
-        printf("}\n\n");
-        
-        // Ajouter une fonction main pour tester
-        printf("int main(int argc, char *argv[]) {\n");
-        // Déclarer les variables
-        printf("// Déclaration des variables\n");
-        declare_variables(); 
-        printf("\n");
-        printf("    const char *output_file = (argc > 1) ? argv[1] : \"output.html\";\n");
-        printf("    generate_html(output_file);\n");
-        printf("    return 0;\n");
-        printf("}\n");
     }
     |import_instructions element{
-        liberer_pile();
-        
-        // Écrire les en-têtes nécessaires
-        printf("#include <stdio.h>\n");
-        printf("#include <stdlib.h>\n");
-        printf("#include <string.h>\n\n");
-        
-        // Before calling generate_structs_and_prototypes()
-        printf("// Définition des types personnalisés\n");
-        
+        if (!is_validating_component) {
+            liberer_pile();
+            
+            // Écrire les en-têtes nécessaires
+            printf("#include <stdio.h>\n");
+            printf("#include <stdlib.h>\n");
+            printf("#include <string.h>\n\n");
+            
+            // Before calling generate_structs_and_prototypes()
+            printf("// Définition des types personnalisés\n");
+            
 
-        // Call the function
-        generate_structs_and_prototypes();
+            // Call the function
+            generate_structs_and_prototypes();
 
-        
-        // Déclarer le buffer global
-        printf("\nchar output_buffer[10000] = {\n");
-        
-        // Remplir le buffer avec le contenu HTML généré
-        printf("    \"");
-        for (size_t i = 0; i < strlen(output_buffer); i++) {
-            if (output_buffer[i] == '\n') {
-                printf("\\n\"\n    \"");
-            } else if (output_buffer[i] == '"') {
-                printf("\\\"");
-            } else if (output_buffer[i] == '\\') {
-                printf("\\\\");
-            } else {
-                printf("%c", output_buffer[i]);
+            
+            // Déclarer le buffer global
+            printf("\nchar output_buffer[10000] = {\n");
+            
+            // Remplir le buffer avec le contenu HTML généré
+            printf("    \"");
+            for (size_t i = 0; i < strlen(output_buffer); i++) {
+                if (output_buffer[i] == '\n') {
+                    printf("\\n\"\n    \"");
+                } else if (output_buffer[i] == '"') {
+                    printf("\\\"");
+                } else if (output_buffer[i] == '\\') {
+                    printf("\\\\");
+                } else {
+                    printf("%c", output_buffer[i]);
+                }
             }
+            printf("\"\n};\n\n");
+            
+            // Écrire la fonction generate_html
+            printf("// Fonction pour générer un fichier HTML avec le contenu du buffer\n");
+            printf("void generate_html(const char *filename) {\n");
+            printf("    FILE *file = fopen(filename, \"w\");\n");
+            printf("    if (file == NULL) {\n");
+            printf("        fprintf(stderr, \"Error: Failed to open file %%s for writing\\n\", filename);\n");
+            printf("        return;\n");
+            printf("    }\n");
+            printf("    \n");
+            printf("    // Écrire l'en-tête HTML standard\n");
+            printf("    fprintf(file, \"<!DOCTYPE html>\\n\");\n");
+            printf("    fprintf(file, \"<html lang=\\\"en\\\">\\n\");\n");
+            printf("    fprintf(file, \"<head>\\n\");\n");
+            printf("    fprintf(file, \"    <meta charset=\\\"UTF-8\\\">\\n\");\n");
+            printf("    fprintf(file, \"    <meta name=\\\"viewport\\\" content=\\\"width=device-width, initial-scale=1.0\\\">\\n\");\n");
+            printf("    fprintf(file, \"    <title>Generated Component</title>\\n\");\n");
+            printf("    fprintf(file, \"</head>\\n\");\n");
+            printf("    fprintf(file, \"<body>\\n\");\n");
+            printf("    \n");
+            printf("    // Écrire le contenu du buffer\n");
+            printf("    fprintf(file, \"%%s\\n\", output_buffer);\n");
+            printf("    \n");
+            printf("    // Fermer le document HTML\n");
+            printf("    fprintf(file, \"</body>\\n\");\n");
+            printf("    fprintf(file, \"</html>\\n\");\n");
+            printf("    \n");
+            printf("    fclose(file);\n");
+            printf("    printf(\"HTML file generated successfully: %%s\\n\", filename);\n");
+            printf("}\n\n");
+            
+            // Ajouter une fonction main pour tester
+            printf("int main(int argc, char *argv[]) {\n");
+            // Déclarer les variables
+            printf("// Déclaration des variables\n");
+            declare_variables(); 
+            printf("\n");
+            printf("    const char *output_file = (argc > 1) ? argv[1] : \"output.html\";\n");
+            printf("    generate_html(output_file);\n");
+            printf("    return 0;\n");
+            printf("}\n");
+    
+        } else {
+            // Reset the output buffer before processing this component
+            output_buffer[0] = '\0';
         }
-        printf("\"\n};\n\n");
-        
-        // Écrire la fonction generate_html
-        printf("// Fonction pour générer un fichier HTML avec le contenu du buffer\n");
-        printf("void generate_html(const char *filename) {\n");
-        printf("    FILE *file = fopen(filename, \"w\");\n");
-        printf("    if (file == NULL) {\n");
-        printf("        fprintf(stderr, \"Error: Failed to open file %%s for writing\\n\", filename);\n");
-        printf("        return;\n");
-        printf("    }\n");
-        printf("    \n");
-        printf("    // Écrire l'en-tête HTML standard\n");
-        printf("    fprintf(file, \"<!DOCTYPE html>\\n\");\n");
-        printf("    fprintf(file, \"<html lang=\\\"en\\\">\\n\");\n");
-        printf("    fprintf(file, \"<head>\\n\");\n");
-        printf("    fprintf(file, \"    <meta charset=\\\"UTF-8\\\">\\n\");\n");
-        printf("    fprintf(file, \"    <meta name=\\\"viewport\\\" content=\\\"width=device-width, initial-scale=1.0\\\">\\n\");\n");
-        printf("    fprintf(file, \"    <title>Generated Component</title>\\n\");\n");
-        printf("    fprintf(file, \"</head>\\n\");\n");
-        printf("    fprintf(file, \"<body>\\n\");\n");
-        printf("    \n");
-        printf("    // Écrire le contenu du buffer\n");
-        printf("    fprintf(file, \"%%s\\n\", output_buffer);\n");
-        printf("    \n");
-        printf("    // Fermer le document HTML\n");
-        printf("    fprintf(file, \"</body>\\n\");\n");
-        printf("    fprintf(file, \"</html>\\n\");\n");
-        printf("    \n");
-        printf("    fclose(file);\n");
-        printf("    printf(\"HTML file generated successfully: %%s\\n\", filename);\n");
-        printf("}\n\n");
-        
-        // Ajouter une fonction main pour tester
-        printf("int main(int argc, char *argv[]) {\n");
-        // Déclarer les variables
-        printf("// Déclaration des variables\n");
-        declare_variables(); 
-        printf("\n");
-        printf("    const char *output_file = (argc > 1) ? argv[1] : \"output.html\";\n");
-        printf("    generate_html(output_file);\n");
-        printf("    return 0;\n");
-        printf("}\n");
     }
 ;
 
 element:
     COMPONENT IDENTIFIER LPAREN parameters RPAREN function {
+        if (strcmp($2, "main") == 0) {
+            is_validating_component = false;
+        } else {
+            is_validating_component = true;
+        }
         // Create a buffer with sufficient space
         char buffer[10000] = {0};  // Initialize to zero
         
@@ -761,6 +820,39 @@ variable_instruction:
         $$ = strdup(var_name);
         free(var_name);
         free(type_name);
+    }
+    |IDENTIFIER COLON IDENTIFIER SEMICOLON
+    {
+        char* var_name = $1;
+        char* type_name = $3;
+        int is_valid = 1;
+        
+        // Vérifier si la variable existe déjà
+        if (check_variable_exists(var_name)) {
+            char error_msg[256];
+            snprintf(error_msg, sizeof(error_msg),"Variable '%s' already declared" , var_name);
+            yyerror(error_msg); 
+            is_valid = 0;
+        }
+        
+        // Vérifier si c'est un type valide
+        if (is_valid && !verify_type(type_name)) {
+            char error_msg[256];
+            snprintf(error_msg, sizeof(error_msg),"Type '%s' is not defined", var_name);
+            yyerror(error_msg);
+            is_valid = 0;
+        }
+        
+        // Ajouter la variable si tout est valide
+        if (is_valid) {
+            add_variable(var_name, type_name, get_default_value(type_name), 0);
+        }
+        
+        if (!is_valid) {
+            YYERROR;
+        }
+        
+        $$ = var_name; // Pas besoin de strdup car var_name sera utilisé
     }
 ;
 
@@ -1294,6 +1386,12 @@ prop:
 html_inner:
     IDENTIFIER {
         char* type = get_identifier_type($1);
+        // if (type == NULL) {
+        //     // Vérifier si c'est un composant importé
+        //     if (is_validating_component){
+        //         $$ = generate_html_code($1);
+        //     }
+        // }
         if (type != NULL) {
             // C'est un identifiant connu avec un type
             $$ = generate_html_code($1);
@@ -1334,15 +1432,28 @@ void yyerror(const char *s) {
     exit(1);
 }
 
-int main() {
+int run_main_parsing() {
     yydebug = 1;
     output_buffer[0] = '\0';
-    
-    
-    initialize_imported_components(); // Initialiser la liste des composants importés
-    int result = yyparse();
-    
-    free_imported_components(); // Libérer la mémoire des composants importés
-    
+
+    initialize_imported_components();  // Initialise les composants
+
+    yyin = stdin;
+    yyrestart(yyin);
+
+    int result = yyparse();           // Analyse le fichier principal
+
     return result;
+}
+
+int main() {
+    int result = run_main_parsing();
+
+    printf("//Résultat du parsing principal : %d\n", result);
+
+    parse_imported_components();      // Ensuite, analyser les composants
+
+    free_imported_components();       // Libération de la mémoire
+
+    return result;                    // Tu retournes le résultat de l’analyse principale
 }

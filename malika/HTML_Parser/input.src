@@ -24,16 +24,17 @@ component main (name: string, age:int){
 
     array:number[]=[1,2,5,19];
     hello:string ="malika";
-    age:number =12;
-    
+    year:number =12;
+    name:string;
+    age:int;
     return(
         <div>
         
         <h1>{users[1].name}</h1>
         <h1>{hello}</h1>
         <h3>{mohamed.name}</h3>
-        <h1>{age}</h1>
-            <cardComponent userName= {mohamed.name} age= {users[1].age} />
+        <h1>{year}</h1>
+            <cardComponent name= {mohamed.name} age= {users[1].age} />
             <userProfile/>
         </div>
     );

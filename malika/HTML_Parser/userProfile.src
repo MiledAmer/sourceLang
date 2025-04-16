@@ -1,4 +1,4 @@
-component userProfile (userName: string, age:int){
+component userProfile (){
     return (
         <p>Malika</p>
     );

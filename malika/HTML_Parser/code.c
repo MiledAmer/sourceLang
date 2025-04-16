@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -23,6 +22,8 @@ char output_buffer[10000] = {
     "	<div id='cardComponent'>\n"
     "\n"
     "        <div>\n"
+    "            <h1>miled</h1>\n"
+    "            <p>22</p>\n"
     "            <h2>World</h2>\n"
     "        </div>\n"
     "    \n"
@@ -67,7 +68,7 @@ void generate_html(const char *filename) {
 int main(int argc, char *argv[]) {
 // Déclaration des variables
 	// Array of custom type User
-	struct User users[2];
+	User users[2];
 	users[0].name = malloc(strlen("miled")+1);
 	strcpy(users[0].name, "miled");
 	users[0].age = 24;

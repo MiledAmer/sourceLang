@@ -48,5 +48,5 @@ char* get_value(const char* var_name, const char* field_name);
 int count_array_elements(const char* array_str);
 char* extract_array_element(char* array_str, int* index);
 void initialize_custom_type_element(const char* array_name, int index, char* type_name, const char* element_str);
-
+char* get_default_value(char* type_name);
 #endif 

@@ -31,4 +31,5 @@ void initialize_imported_components();
 void free_props(struct prop_value* props, int count);
 struct prop_value* parse_props(const char* str, int* count) ;
 char* apply_props_to_component(const char* component_name, struct prop_value* props, int prop_count) ;
+
 #endif

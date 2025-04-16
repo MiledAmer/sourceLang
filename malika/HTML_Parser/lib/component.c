@@ -3,6 +3,7 @@
 #include <string.h>
 #include "component.h"
 
+
 ImportedComponent imported_components[MAX_IMPORTED_COMPONENTS];
 int imported_count = 0;
 

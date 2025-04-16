@@ -42,7 +42,7 @@ void declare_variables() {
             if (type != NULL) {
                 // This is an array of custom types
                 printf("\t// Array of custom type %s\n", variables[i].type);
-                printf("\tstruct %s %s[%d];\n", variables[i].type, variables[i].name, 
+                printf("\t%s %s[%d];\n", variables[i].type, variables[i].name, 
                        count_array_elements(variables[i].value));
                 
                 // Initialize each element of the array
@@ -577,4 +577,37 @@ void initialize_custom_type_element(const char* array_name, int index,char* type
         
         field_str = strtok(NULL, ",");
     }
+}
+
+
+char* get_default_value(char* type_name) {
+    if (type_name == NULL) {
+        return NULL;
+    }
+    
+    // Default values for primitive types
+    if (strcmp(type_name, "int") == 0 || 
+        strcmp(type_name, "float") == 0 || 
+        strcmp(type_name, "double") == 0) {
+        return strdup("0");
+    } 
+    else if (strcmp(type_name, "char") == 0) {
+        return strdup("''");  // Empty character
+    }
+    else if (strcmp(type_name, "string") == 0) {
+        return strdup("\"\"");  // Empty string
+    }
+    else if (strcmp(type_name, "bool") == 0 || 
+             strcmp(type_name, "boolean") == 0) {
+        return strdup("false");
+    }
+    
+    // For user-defined types or unrecognized types
+    // You might want to look up default values for custom types in a symbol table
+    if (find_custom_type(type_name)) {
+        return strdup("null");
+    }
+    
+    // Default fallback
+    return strdup("null");
 }

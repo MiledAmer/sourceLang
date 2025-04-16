@@ -1,7 +1,7 @@
-component cardComponent (userName: string, age:int){
+component cardComponent (name: string, age:int){
     return (
         <div>
-            <h1>{userName}</h1>
+            <h1>{name}</h1>
             <p>{age}</p>
             <h2>World</h2>
         </div>
