@@ -118,7 +118,7 @@ void liberer_pile() {
 %token <strval> IDENTIFIER STRING_LITERAL
 %type <strval> element parameters parameter function html_content html_inner attributes attribute html_element function_body variable_instruction identifiant_interpole
 %type <strval> type_instruction type_properties type_property import_instruction return_instruction instructions instruction import_instructions field_value_list 
-%type <strval> field_values field_value value custom_type_object custom_type_array_elements array_value array_values
+%type <strval> field_values field_value value custom_type_object custom_type_array_elements array_value array_values props_list prop 
 %token <strval> NUMBER_LITERAL BOOLEAN_LITERAL
 %%
 
@@ -697,7 +697,6 @@ variable_instruction:
                 }
             }
             strcat(array_value_str, "}");
-            printf("Array value string: %s\n", array_value_str); // Debugging line
             add_variable(var_name, type_name, array_value_str, 1);
             $$ = strdup(var_name);
             
@@ -747,7 +746,7 @@ variable_instruction:
                 }
             }
             strcat(array_value, "}");
-            printf("Custom array value string: %s\n", array_value); // Debugging line
+            
             // Add the array variable
             add_variable(var_name, type_name, array_value, 1); // 1 = is_array
         }
@@ -1190,6 +1189,64 @@ html_element:
         $$ = buffer;
         free($2); free($3);
     }
+    |LT IDENTIFIER props_list GT html_content LT SLASH IDENTIFIER GT {
+        // Vérifier que les balises ouvrantes et fermantes correspondent    
+        if (strcmp($2, $8) != 0) {
+            char error_msg[100];
+            sprintf(error_msg, "Erreur: Les balises <%s> et </%s> ne correspondent pas", $2, $8);
+            yyerror(error_msg);
+            YYERROR;
+        }
+        // Check if it's an imported component
+        char* component_content = find_imported_component($2);
+        
+        if (component_content != NULL) {
+            // It's an imported component
+            
+            // Parse props from $3 (props_list)
+            int prop_count = 0;
+            struct prop_value* props = parse_props($3, &prop_count);
+            
+            // Apply props to component
+            char* rendered_component = apply_props_to_component($2, props, prop_count);
+            
+            // Free props
+            free_props(props, prop_count);
+            
+            $$ = rendered_component;
+        } else {
+            // It's a text literal
+            char* tmp = malloc(strlen($2) + 100);
+            sprintf(tmp, "%s", $2);
+            $$ = tmp;
+        }
+    } 
+    |
+    LT IDENTIFIER props_list SLASH GT {
+        // Check if it's an imported component
+        char* component_content = find_imported_component($2);
+        
+        if (component_content != NULL) {
+            // It's an imported component
+            
+            // Parse props from $3 (props_list)
+            int prop_count = 0;
+            struct prop_value* props = parse_props($3, &prop_count);
+            
+            // Apply props to component
+            char* rendered_component = apply_props_to_component($2, props, prop_count);
+            
+            // Free props
+            free_props(props, prop_count);
+            
+            $$ = rendered_component;
+        } else {
+            // It's a text literal
+            char* tmp = malloc(strlen($2) + 100);
+            sprintf(tmp, "%s", $2);
+            $$ = tmp;
+        }
+    } 
     | html_inner {
         $$ = $1;
     }
@@ -1211,6 +1268,26 @@ attribute:
         sprintf(buffer, "%s=%s", $1, $3);
         $$ = buffer;
         free($1); free($3);
+    }
+;
+
+props_list:
+    /* empty */ { $$ = strdup(""); }
+    | prop props_list { 
+        char* tmp = malloc(strlen($1) + strlen($2) + 2);
+        sprintf(tmp, "%s %s", $1, $2);
+        free($1);
+        free($2);
+        $$ = tmp;
+    }
+;
+
+prop:
+    IDENTIFIER EQUALS LBRACE identifiant_interpole RBRACE {
+        char* tmp = malloc(strlen($1) + strlen($4) + 10);
+        sprintf(tmp, "%s={%s}", $1, $4);
+        free($4);
+        $$ = tmp;
     }
 ;
 
@@ -1244,6 +1321,7 @@ html_inner:
     }
     | LBRACE identifiant_interpole RBRACE {
         $$= $2;
+        
     }
 ;
 

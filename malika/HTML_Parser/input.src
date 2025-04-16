@@ -33,7 +33,7 @@ component main (name: string, age:int){
         <h1>{hello}</h1>
         <h3>{mohamed.name}</h3>
         <h1>{age}</h1>
-            <cardComponent/>
+            <cardComponent userName= {mohamed.name} age= {users[1].age} />
             <userProfile/>
         </div>
     );

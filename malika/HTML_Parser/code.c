@@ -1,5 +1,4 @@
-Custom array value string: {{name = "miled", age = 24}, {name = "malika", age = 22}}
-Array value string: {1, 2, 5, 19}
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
