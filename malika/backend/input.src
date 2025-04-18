@@ -1,9 +1,5 @@
-component UserProfile () {
-
-
+function getUsers(request:Request):bool {
+    
+    int x
 }
 
-component UserProfile () {
-
-
-}
