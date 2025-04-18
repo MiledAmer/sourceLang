@@ -72,6 +72,9 @@
 
 #include <stdio.h>
 #include <string.h>
+#include "lib/variable.h"
+#include "lib/customType.h"
+#include "lib/identifier.h"
 
 extern int yylex();
 void yyerror(const char *s);
@@ -81,7 +84,7 @@ char current_component[256];
 
 
 /* Line 189 of yacc.c  */
-#line 85 "parser.tab.c"
+#line 88 "parser.tab.c"
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
@@ -114,20 +117,20 @@ char current_component[256];
      LPAREN = 261,
      RPAREN = 262,
      COLON = 263,
-     TYPE = 264,
-     SEMICOLON = 265,
-     FROM = 266,
-     IMPORT = 267,
-     COMMA = 268,
-     LT = 269,
-     GT = 270,
-     SLASH = 271,
-     DOT = 272,
-     LBRACKET = 273,
-     RBRACKET = 274,
-     RETURN = 275,
-     EQUALS = 276,
-     FUNCTION = 277,
+     SEMICOLON = 264,
+     COMMA = 265,
+     LBRACKET = 266,
+     RBRACKET = 267,
+     EQUALS = 268,
+     FUNCTION = 269,
+     IMPORT = 270,
+     FROM = 271,
+     TYPE = 272,
+     RETURN = 273,
+     LT = 274,
+     GT = 275,
+     SLASH = 276,
+     DOT = 277,
      IDENTIFIER = 278,
      STRING_LITERAL = 279,
      NUMBER_LITERAL = 280,
@@ -142,7 +145,7 @@ typedef union YYSTYPE
 {
 
 /* Line 214 of yacc.c  */
-#line 12 "parser.y"
+#line 15 "parser.y"
 
     int intval;   // For numeric values
     char* strval; // For strings like IDENTIFIER
@@ -150,7 +153,7 @@ typedef union YYSTYPE
 
 
 /* Line 214 of yacc.c  */
-#line 154 "parser.tab.c"
+#line 157 "parser.tab.c"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -162,7 +165,7 @@ typedef union YYSTYPE
 
 
 /* Line 264 of yacc.c  */
-#line 166 "parser.tab.c"
+#line 169 "parser.tab.c"
 
 #ifdef short
 # undef short
@@ -377,16 +380,16 @@ union yyalloc
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  8
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   24
+#define YYLAST   83
 
 /* YYNTOKENS -- Number of terminals.  */
 #define YYNTOKENS  27
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  8
+#define YYNNTS  20
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  12
+#define YYNRULES  41
 /* YYNRULES -- Number of states.  */
-#define YYNSTATES  31
+#define YYNSTATES  86
 
 /* YYTRANSLATE(YYLEX) -- Bison symbol number corresponding to YYLEX.  */
 #define YYUNDEFTOK  2
@@ -434,25 +437,42 @@ static const yytype_uint8 yytranslate[] =
    YYRHS.  */
 static const yytype_uint8 yyprhs[] =
 {
-       0,     0,     3,     5,     7,    15,    26,    27,    30,    31,
-      33,    35,    39
+       0,     0,     3,     5,     7,    15,    24,    27,    31,    33,
+      36,    38,    40,    44,    48,    55,    62,    73,    84,    89,
+      93,    96,   100,   102,   106,   108,   110,   112,   114,   116,
+     120,   122,   124,   126,   128,   130,   134,   138,   139,   141,
+     143,   147
 };
 
 /* YYRHS -- A `-1'-separated list of the rules' RHS.  */
 static const yytype_int8 yyrhs[] =
 {
       28,     0,    -1,    29,    -1,    30,    -1,     3,    23,     6,
-      32,     7,     4,     5,    -1,    22,    23,     6,    32,     7,
-       8,    23,     4,    31,     5,    -1,    -1,    23,    31,    -1,
-      -1,    33,    -1,    34,    -1,    33,    13,    34,    -1,    23,
-       8,    23,    -1
+      44,     7,     4,     5,    -1,    14,    23,     6,    44,     7,
+       8,    23,    31,    -1,     4,     5,    -1,     4,    32,     5,
+      -1,    33,    -1,    33,    32,    -1,    35,    -1,    34,    -1,
+      18,    23,     9,    -1,    18,    26,     9,    -1,    23,     8,
+      23,    13,    36,     9,    -1,    23,     8,    23,    13,    39,
+       9,    -1,    23,     8,    23,    11,    12,    13,    11,    40,
+      12,     9,    -1,    23,     8,    23,    11,    12,    13,    11,
+      42,    12,     9,    -1,    23,     8,    23,     9,    -1,     4,
+      37,     5,    -1,     4,     5,    -1,    37,    10,    38,    -1,
+      38,    -1,    23,     8,    39,    -1,    24,    -1,    25,    -1,
+      26,    -1,    23,    -1,    41,    -1,    40,    10,    41,    -1,
+      25,    -1,    24,    -1,    26,    -1,    23,    -1,    43,    -1,
+      42,    10,    43,    -1,     4,    37,     5,    -1,    -1,    45,
+      -1,    46,    -1,    45,    10,    46,    -1,    23,     8,    23,
+      -1
 };
 
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
-static const yytype_uint8 yyrline[] =
+static const yytype_uint16 yyrline[] =
 {
-       0,    26,    26,    27,    31,    55,    64,    65,    80,    81,
-      85,    87,    98
+       0,    30,    30,    31,    35,    59,    73,    76,    82,    83,
+      97,   101,   109,   129,   136,   268,   335,   376,   426,   462,
+     466,   473,   476,   482,   496,   504,   512,   520,   531,   535,
+     546,   549,   552,   555,   576,   581,   595,   639,   640,   644,
+     646,   657
 };
 #endif
 
@@ -462,11 +482,15 @@ static const yytype_uint8 yyrline[] =
 static const char *const yytname[] =
 {
   "$end", "error", "$undefined", "COMPONENT", "LBRACE", "RBRACE",
-  "LPAREN", "RPAREN", "COLON", "TYPE", "SEMICOLON", "FROM", "IMPORT",
-  "COMMA", "LT", "GT", "SLASH", "DOT", "LBRACKET", "RBRACKET", "RETURN",
-  "EQUALS", "FUNCTION", "IDENTIFIER", "STRING_LITERAL", "NUMBER_LITERAL",
-  "BOOLEAN_LITERAL", "$accept", "program", "element", "function",
-  "function_content", "parameters", "typed_param_list", "typed_param", 0
+  "LPAREN", "RPAREN", "COLON", "SEMICOLON", "COMMA", "LBRACKET",
+  "RBRACKET", "EQUALS", "FUNCTION", "IMPORT", "FROM", "TYPE", "RETURN",
+  "LT", "GT", "SLASH", "DOT", "IDENTIFIER", "STRING_LITERAL",
+  "NUMBER_LITERAL", "BOOLEAN_LITERAL", "$accept", "program", "element",
+  "function", "function_content", "instructions", "instruction",
+  "return_instruction", "variable_instruction", "field_value_list",
+  "field_values", "field_value", "value", "array_values", "array_value",
+  "custom_type_array_elements", "custom_type_object", "parameters",
+  "typed_param_list", "typed_param", 0
 };
 #endif
 
@@ -485,14 +509,20 @@ static const yytype_uint16 yytoknum[] =
 static const yytype_uint8 yyr1[] =
 {
        0,    27,    28,    28,    29,    30,    31,    31,    32,    32,
-      33,    33,    34
+      33,    33,    34,    34,    35,    35,    35,    35,    35,    36,
+      36,    37,    37,    38,    39,    39,    39,    39,    40,    40,
+      41,    41,    41,    41,    42,    42,    43,    44,    44,    45,
+      45,    46
 };
 
 /* YYR2[YYN] -- Number of symbols composing right hand side of rule YYN.  */
 static const yytype_uint8 yyr2[] =
 {
-       0,     2,     1,     1,     7,    10,     0,     2,     0,     1,
-       1,     3,     3
+       0,     2,     1,     1,     7,     8,     2,     3,     1,     2,
+       1,     1,     3,     3,     6,     6,    10,    10,     4,     3,
+       2,     3,     1,     3,     1,     1,     1,     1,     1,     3,
+       1,     1,     1,     1,     1,     3,     3,     0,     1,     1,
+       3,     3
 };
 
 /* YYDEFACT[STATE-NAME] -- Default rule to reduce with in state
@@ -500,33 +530,45 @@ static const yytype_uint8 yyr2[] =
    means the default is an error.  */
 static const yytype_uint8 yydefact[] =
 {
-       0,     0,     0,     0,     2,     3,     0,     0,     1,     8,
-       8,     0,     0,     9,    10,     0,     0,     0,     0,     0,
-      12,     0,    11,     0,     4,     0,     6,     6,     0,     7,
-       5
+       0,     0,     0,     0,     2,     3,     0,     0,     1,    37,
+      37,     0,     0,    38,    39,     0,     0,     0,     0,     0,
+      41,     0,    40,     0,     4,     0,     0,     5,     6,     0,
+       0,     0,     8,    11,    10,     0,     0,     0,     7,     9,
+      12,    13,     0,    18,     0,     0,     0,     0,    27,    24,
+      25,    26,     0,     0,     0,    20,     0,     0,    22,    14,
+      15,     0,     0,    19,     0,     0,    33,    31,    30,    32,
+       0,    28,     0,    34,    23,    21,     0,     0,     0,     0,
+       0,    36,    29,    16,    35,    17
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-      -1,     3,     4,     5,    28,    12,    13,    14
+      -1,     3,     4,     5,    27,    31,    32,    33,    34,    52,
+      57,    58,    53,    70,    71,    72,    73,    12,    13,    14
 };
 
 /* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
    STATE-NUM.  */
-#define YYPACT_NINF -23
+#define YYPACT_NINF -17
 static const yytype_int8 yypact[] =
 {
-      -3,   -22,   -21,     3,   -23,   -23,    -2,    -1,   -23,   -17,
-     -17,     0,     2,    -6,   -23,     4,   -13,     8,   -17,     5,
-     -23,     9,   -23,    -8,   -23,    12,    -5,    -5,    15,   -23,
-     -23
+      -2,   -14,     7,    39,   -17,   -17,    37,    38,   -17,    22,
+      22,    40,    42,    36,   -17,    43,    24,    47,    22,    44,
+     -17,    48,   -17,    31,   -17,    51,     9,   -17,   -17,    15,
+      49,    53,   -16,   -17,   -17,    50,    52,    33,   -17,   -17,
+     -17,   -17,    20,   -17,    54,    -4,    55,     5,   -17,   -17,
+     -17,   -17,    56,    58,    59,   -17,    61,     1,   -17,   -17,
+     -17,     0,    -8,   -17,    41,    41,   -17,   -17,   -17,   -17,
+      -7,   -17,    30,   -17,   -17,   -17,     3,    11,    62,    68,
+      64,   -17,   -17,   -17,   -17,   -17
 };
 
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-     -23,   -23,   -23,   -23,   -10,    11,   -23,     6
+     -17,   -17,   -17,   -17,   -17,    28,   -17,   -17,   -17,   -17,
+      -3,    -1,    12,   -17,     2,   -17,     4,    65,   -17,    60
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]].  What to do in state STATE-NUM.  If
@@ -536,26 +578,43 @@ static const yytype_int8 yypgoto[] =
 #define YYTABLE_NINF -1
 static const yytype_uint8 yytable[] =
 {
-       1,     6,     7,     8,     9,    10,    11,    18,    16,    17,
-      20,    19,    21,    23,    24,    25,    26,    29,    27,     2,
-      30,    15,     0,     0,    22
+      47,     1,    29,    77,    65,    78,    63,    30,    81,     6,
+      55,    64,     2,    64,    28,    48,    49,    50,    51,    48,
+      49,    50,    51,    66,    67,    68,    69,    29,    56,    43,
+       7,    44,    30,    45,    66,    67,    68,    69,    35,     8,
+      79,    36,    80,     9,    10,    11,    18,    20,    16,    17,
+      19,    21,    23,    24,    25,    26,    42,    37,    38,    40,
+      39,    41,    76,    75,    56,    59,    46,    60,    54,    62,
+      61,    83,    65,    85,    74,    15,     0,     0,    22,    82,
+       0,     0,     0,    84
 };
 
 static const yytype_int8 yycheck[] =
 {
-       3,    23,    23,     0,     6,     6,    23,    13,     8,     7,
-      23,     7,     4,     8,     5,    23,     4,    27,    23,    22,
-       5,    10,    -1,    -1,    18
+       4,     3,    18,    10,     4,    12,     5,    23,     5,    23,
+       5,    10,    14,    10,     5,    23,    24,    25,    26,    23,
+      24,    25,    26,    23,    24,    25,    26,    18,    23,     9,
+      23,    11,    23,    13,    23,    24,    25,    26,    23,     0,
+      10,    26,    12,     6,     6,    23,    10,    23,     8,     7,
+       7,     4,     8,     5,    23,     4,    23,     8,     5,     9,
+      32,     9,    65,    64,    23,     9,    12,     9,    13,     8,
+      11,     9,     4,     9,    62,    10,    -1,    -1,    18,    77,
+      -1,    -1,    -1,    79
 };
 
 /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
    symbol of state STATE-NUM.  */
 static const yytype_uint8 yystos[] =
 {
-       0,     3,    22,    28,    29,    30,    23,    23,     0,     6,
-       6,    23,    32,    33,    34,    32,     8,     7,    13,     7,
-      23,     4,    34,     8,     5,    23,     4,    23,    31,    31,
-       5
+       0,     3,    14,    28,    29,    30,    23,    23,     0,     6,
+       6,    23,    44,    45,    46,    44,     8,     7,    10,     7,
+      23,     4,    46,     8,     5,    23,     4,    31,     5,    18,
+      23,    32,    33,    34,    35,    23,    26,     8,     5,    32,
+       9,     9,    23,     9,    11,    13,    12,     4,    23,    24,
+      25,    26,    36,    39,    13,     5,    23,    37,    38,     9,
+       9,    11,     8,     5,    10,     4,    23,    24,    25,    26,
+      40,    41,    42,    43,    39,    38,    37,    10,    12,    10,
+      12,     5,    41,     9,    43,     9
 };
 
 #define yyerrok		(yyerrstatus = 0)
@@ -1369,7 +1428,7 @@ yyreduce:
         case 4:
 
 /* Line 1455 of yacc.c  */
-#line 32 "parser.y"
+#line 36 "parser.y"
     { 
           /* $2 is the component name and $4 is the parameter list */
           printf("void %s(%s) {}\n", (yyvsp[(2) - (7)].strval), (yyvsp[(4) - (7)].strval));
@@ -1380,63 +1439,751 @@ yyreduce:
   case 5:
 
 /* Line 1455 of yacc.c  */
-#line 56 "parser.y"
+#line 60 "parser.y"
     {
         /* $2 is the function name and $4 is the parameter list */
-        printf("%s %s(%s) {\n\t%s\n}\n",(yyvsp[(7) - (10)].strval), (yyvsp[(2) - (10)].strval), (yyvsp[(4) - (10)].strval), (yyvsp[(9) - (10)].strval));
-        free((yyvsp[(4) - (10)].strval));
+        printf("%s %s(%s) {\n",(yyvsp[(7) - (8)].strval), (yyvsp[(2) - (8)].strval), (yyvsp[(4) - (8)].strval));
+        declare_variables();
+        printf("\t%s\n}\n",(yyvsp[(8) - (8)].strval));
+        free((yyvsp[(2) - (8)].strval));
+        free((yyvsp[(7) - (8)].strval));
+        free((yyvsp[(8) - (8)].strval));
+        free((yyvsp[(4) - (8)].strval));
     ;}
     break;
 
   case 6:
 
 /* Line 1455 of yacc.c  */
-#line 64 "parser.y"
-    { (yyval.strval) = strdup(""); ;}
+#line 73 "parser.y"
+    {
+        (yyval.strval) = strdup(""); 
+    ;}
     break;
 
   case 7:
 
 /* Line 1455 of yacc.c  */
-#line 66 "parser.y"
+#line 76 "parser.y"
     {
-        /* Just append any identifier to the content */
-        char* tmp = malloc(strlen((yyvsp[(1) - (2)].strval)) + strlen((yyvsp[(2) - (2)].strval)) + 2);
-        if (tmp) {
-            sprintf(tmp, "%s %s", (yyvsp[(1) - (2)].strval), (yyvsp[(2) - (2)].strval));
-            free((yyvsp[(1) - (2)].strval));
-            (yyval.strval) = tmp;
-        } else {
-            (yyval.strval) = (yyvsp[(1) - (2)].strval);
-        }
+        (yyval.strval) = (yyvsp[(2) - (3)].strval); 
     ;}
     break;
 
   case 8:
 
 /* Line 1455 of yacc.c  */
-#line 80 "parser.y"
-    { (yyval.strval) = strdup(""); ;}
+#line 82 "parser.y"
+    { (yyval.strval) = (yyvsp[(1) - (1)].strval); ;}
     break;
 
   case 9:
 
 /* Line 1455 of yacc.c  */
-#line 81 "parser.y"
-    { (yyval.strval) = (yyvsp[(1) - (1)].strval); ;}
+#line 83 "parser.y"
+    {
+        if (strcmp((yyvsp[(1) - (2)].strval)," ") == 0) {
+            (yyval.strval) = (yyvsp[(2) - (2)].strval); // Ignore empty instructions
+        } else {
+            char *buffer = malloc(strlen((yyvsp[(1) - (2)].strval)) + strlen((yyvsp[(2) - (2)].strval)) + 2);
+            sprintf(buffer, "%s\n%s", (yyvsp[(1) - (2)].strval), (yyvsp[(2) - (2)].strval));
+            (yyval.strval) = buffer;
+            free((yyvsp[(1) - (2)].strval)); free((yyvsp[(2) - (2)].strval));
+        }
+        
+    ;}
     break;
 
   case 10:
 
 /* Line 1455 of yacc.c  */
-#line 86 "parser.y"
-    { (yyval.strval) = (yyvsp[(1) - (1)].strval); ;}
+#line 97 "parser.y"
+    {
+        // Générer une instruction de variable
+        (yyval.strval) = strdup(" "); // Store the variable name
+    ;}
     break;
 
   case 11:
 
 /* Line 1455 of yacc.c  */
-#line 88 "parser.y"
+#line 101 "parser.y"
+    {
+        // Générer une instruction de retour
+        (yyval.strval) = (yyvsp[(1) - (1)].strval); // Store the return value
+    ;}
+    break;
+
+  case 12:
+
+/* Line 1455 of yacc.c  */
+#line 109 "parser.y"
+    {
+        // Vérifier si la variable existe
+        int found = 0;
+        for (int i = 0; i < var_count; i++) {
+            if (strcmp(variables[i].name, (yyvsp[(2) - (3)].strval)) == 0) {
+                found = 1;
+                break;
+            }
+        }
+        if (!found) {
+            char error_msg[256];
+            snprintf(error_msg, sizeof(error_msg), "Error: Undefined identifier '%s' used in return", (yyvsp[(2) - (3)].strval));
+            yyerror(error_msg);
+            YYERROR;
+        }
+        else {
+            (yyval.strval) = strdup((yyvsp[(2) - (3)].strval)); // Store the return value
+        }
+       
+    ;}
+    break;
+
+  case 13:
+
+/* Line 1455 of yacc.c  */
+#line 129 "parser.y"
+    {
+        (yyval.strval) = strdup((yyvsp[(2) - (3)].strval)); // Store the return value
+    ;}
+    break;
+
+  case 14:
+
+/* Line 1455 of yacc.c  */
+#line 136 "parser.y"
+    {
+        char* var_name = (yyvsp[(1) - (6)].strval);
+        char* type_name = (yyvsp[(3) - (6)].strval);
+        int is_valid = 1;
+        
+        // Vérifier d'abord si le type existe
+        custom_type* type = find_custom_type(type_name);
+        int is_primitive_type = verify_type(type_name);
+        
+        if (type == NULL && !is_primitive_type) {
+            char error_msg[256];
+            snprintf(error_msg, sizeof(error_msg), "Error: Type '%s' is not defined", type_name);
+            yyerror(error_msg);
+            is_valid = 0;
+        }
+        
+        // Vérifier si la variable existe déjà
+        if (is_valid && check_variable_exists(var_name)) {
+            char error_msg[256];
+            snprintf(error_msg, sizeof(error_msg), "Error: Variable '%s' already declared", var_name);
+            yyerror(error_msg);
+            is_valid = 0;
+        }
+        
+        if (is_valid) {
+            if (type != NULL) {
+                // C'est un type personnalisé - vérifier les attributs et leurs valeurs
+                // Créer une table de hachage temporaire pour vérifier les champs fournis
+                int field_provided[MAX_FIELDS] = {0}; // Pour marquer les champs fournis
+                
+                // Vérifier si tous les champs fournis existent dans le type
+                for (int i = 0; i < field_count && is_valid; i++) {
+                    int field_found = 0;
+                    
+                    for (int j = 0; j < type->field_count; j++) {
+                        if (strcmp(field_names[i], type->fields[j][0]) == 0) {
+                            field_found = 1;
+                            field_provided[j] = 1; // Marquer ce champ comme fourni
+                            
+                            // Vérifier la compatibilité du type pour ce champ
+                            if (!check_field_value_compatibility(type->fields[j][1], field_values[i], field_types[i])) {
+                                char error_msg[256];
+                                snprintf(error_msg, sizeof(error_msg), 
+                                       "Type error: Cannot assign '%s' to field '%s' of type '%s'",
+                                       field_values[i], field_names[i], type->fields[j][1]);
+                                yyerror(error_msg);
+                                is_valid = 0;
+                            }
+                            break;
+                        }
+                    }
+                    
+                    if (!field_found) {
+                        char error_msg[256];
+                        snprintf(error_msg, sizeof(error_msg), 
+                               "Error: Field '%s' does not exist in type '%s'",
+                               field_names[i], type_name);
+                        yyerror(error_msg);
+                        is_valid = 0;
+                    }
+                }
+                
+                // Vérifier que tous les champs requis sont fournis
+                for (int j = 0; j < type->field_count && is_valid; j++) {
+                    if (!field_provided[j] && type->fields[j][2] != NULL && strcmp(type->fields[j][2], "required") == 0) {
+                        char error_msg[256];
+                        snprintf(error_msg, sizeof(error_msg), 
+                               "Error: Required field '%s' of type '%s' is missing",
+                               type->fields[j][0], type_name);
+                        yyerror(error_msg);
+                        is_valid = 0;
+                    }
+                }
+                
+                if (is_valid) {
+                    char value_buffer[500] = "{";
+                    for (int i = 0; i < field_count; i++) {
+                        char field_entry[128];
+                        
+                        // Ajouter des guillemets autour des strings
+                        if (field_types[i]== 0) {
+                            snprintf(field_entry, sizeof(field_entry), "%s=\"%s\"", field_names[i], field_values[i]);
+                        } else {
+                            snprintf(field_entry, sizeof(field_entry), "%s=%s", field_names[i], field_values[i]);
+                        }
+
+                        strcat(value_buffer, field_entry);
+                        if (i < field_count - 1) {
+                            strcat(value_buffer, ", ");
+                        }
+                    }
+                    strcat(value_buffer, "}");
+
+                    // Appel existant (inchangé) avec la vraie valeur maintenant
+                    add_variable(var_name, type_name, value_buffer, 0);
+
+                }
+            } else if (is_primitive_type) {
+                // C'est un type primitif
+                if (field_count != 1) {
+                    char error_msg[256];
+                    snprintf(error_msg, sizeof(error_msg), 
+                           "Error: Primitive type '%s' expects single value, got %d values", 
+                           type_name, field_count);
+                    yyerror(error_msg);
+                    is_valid = 0;
+                } else if (!check_primitive_type_compatibility(type_name, field_values[0], field_types[0])) {
+                    char error_msg[256];
+                    snprintf(error_msg, sizeof(error_msg), 
+                           "Type error: Cannot assign '%s' to variable of type '%s'", 
+                           field_values[0], type_name);
+                    yyerror(error_msg);
+                    is_valid = 0;
+                } else {
+                    // Ajouter la variable primitive
+                    add_variable(var_name, type_name, field_values[0], 0); // 0 = type primitif
+                }
+            }
+        }
+        
+        // Réinitialiser les compteurs
+        field_count = 0;
+        value_count = 0;
+        
+        if (!is_valid) {
+            YYERROR;
+        }
+        
+        (yyval.strval) = strdup(var_name); // Return the variable name for further processing if needed
+        free(var_name);
+        free(type_name);
+    ;}
+    break;
+
+  case 15:
+
+/* Line 1455 of yacc.c  */
+#line 268 "parser.y"
+    {
+        char* var_name = (yyvsp[(1) - (6)].strval);
+        char* type_name = (yyvsp[(3) - (6)].strval);
+        int is_valid = 1;
+        char* declaration= NULL;
+        // Vérifier que la valeur a bien été ajoutée
+        if (value_count != 1) {
+            char error_msg[256];
+            snprintf(error_msg, sizeof(error_msg), "Error: Expected 1 value, got %d", value_count);
+            yyerror(error_msg);
+            is_valid = 0;
+        } else {
+            char* value_str = field_values[0];
+            // Vérifier si la variable existe déjà
+            if (check_variable_exists(var_name)) {
+                char error_msg[256];
+                snprintf(error_msg, sizeof(error_msg), "Error: Variable '%s' already declared", var_name);
+                yyerror(error_msg);
+                is_valid = 0;
+            }
+            
+            if (is_valid) {
+                // Vérifier si c'est un type personnalisé
+                custom_type* type = find_custom_type(type_name);
+                if (type != NULL) {
+                    char error_msg[256];
+                    snprintf(error_msg, sizeof(error_msg), 
+                           "Error: Custom type '%s' requires %d values", type_name, type->field_count);
+                    yyerror(error_msg);
+                    is_valid = 0;
+                } 
+                // Vérifier si c'est un type primitif valide
+                else if (!verify_type(type_name)) {
+                    char error_msg[256];
+                    snprintf(error_msg, sizeof(error_msg), "Error: Type '%s' is not defined", type_name);
+                    yyerror(error_msg);
+                    is_valid = 0;
+                }
+                // Vérifier la compatibilité des types
+                else if (!check_primitive_type_compatibility(type_name, value_str, field_types[0])) {
+                    char error_msg[256];
+                    snprintf(error_msg, sizeof(error_msg), 
+                           "Type error: Cannot assign '%s' to variable of type '%s'", 
+                           value_str, type_name);
+                    yyerror(error_msg);
+                    is_valid = 0;
+                }
+                else {
+                    // Ajouter la variable
+                    add_variable(var_name, type_name, value_str, 0); // 0 = type primitif
+                    
+                }
+            }
+        }
+        
+        // Réinitialiser le compteur de valeurs
+        value_count = 0;
+        
+        if (!is_valid) {
+            YYERROR;
+        }
+        
+        (yyval.strval) = strdup(var_name);
+        free(var_name);
+        free(type_name);
+    ;}
+    break;
+
+  case 16:
+
+/* Line 1455 of yacc.c  */
+#line 335 "parser.y"
+    {
+        char* var_name = (yyvsp[(1) - (10)].strval);
+        char* type_name = (yyvsp[(3) - (10)].strval);
+        
+        // Check if variable already exists
+        for (int i = 0; i < var_count; i++) {
+            if (strcmp(variables[i].name, var_name) == 0) {
+                char error_msg[256];
+                snprintf(error_msg, sizeof(error_msg), "Error: Variable '%s' already declared", var_name);
+                yyerror(error_msg);
+                YYERROR;
+                break;
+            }
+        }
+        
+        // Verify the base type exists
+        if (verify_type(type_name)) {
+            // Add variable with is_array flag set to 1
+            char array_value_str[1024] = "{";
+            for (int i = 0; i < array_value_count; i++) {
+                strcat(array_value_str, array_values[i]);
+                if (i < array_value_count - 1) {
+                    strcat(array_value_str, ", ");
+                }
+            }
+            strcat(array_value_str, "}");
+            add_variable(var_name, type_name, array_value_str, 1);
+            (yyval.strval) = strdup(var_name);
+            
+            // Reset array_value_count
+            array_value_count = 0;
+        } else {
+            char error_msg[256];
+            snprintf(error_msg, sizeof(error_msg), "Error: Type '%s' is not defined", type_name);
+            yyerror(error_msg);
+            YYERROR;
+        }
+        
+        free(var_name);
+        free(type_name);
+    ;}
+    break;
+
+  case 17:
+
+/* Line 1455 of yacc.c  */
+#line 376 "parser.y"
+    {
+        char* var_name = (yyvsp[(1) - (10)].strval);
+        char* type_name = (yyvsp[(3) - (10)].strval);
+        int is_valid = 1;
+        
+        // Check if the type exists and is a custom type
+        custom_type* type = find_custom_type(type_name);
+        if (type == NULL) {
+            char error_msg[256];
+            snprintf(error_msg, sizeof(error_msg), "Error: Custom type '%s' is not defined", type_name);
+            yyerror(error_msg);
+            is_valid = 0;
+        }
+        
+        // Check if variable already exists
+        if (is_valid && check_variable_exists(var_name)) {
+            char error_msg[256];
+            snprintf(error_msg, sizeof(error_msg), "Error: Variable '%s' already declared", var_name);
+            yyerror(error_msg);
+            is_valid = 0;
+        }
+        
+        if (is_valid) {
+            // Format the array of custom type objects
+            char array_value[2048] = "{"; // Larger buffer for complex structures
+            
+            for (int i = 0; i < custom_array_element_count; i++) {
+                strcat(array_value, custom_array_elements[i]);
+                
+                if (i < custom_array_element_count - 1) {
+                    strcat(array_value, ", ");
+                }
+            }
+            strcat(array_value, "}");
+            
+            // Add the array variable
+            add_variable(var_name, type_name, array_value, 1); // 1 = is_array
+        }
+        
+        // Reset array element count
+        custom_array_element_count = 0;
+        
+        if (!is_valid) {
+            YYERROR;
+        }
+        
+        (yyval.strval) = strdup(var_name);
+        free(var_name);
+        free(type_name);
+    ;}
+    break;
+
+  case 18:
+
+/* Line 1455 of yacc.c  */
+#line 427 "parser.y"
+    {
+        char* var_name = (yyvsp[(1) - (4)].strval);
+        char* type_name = (yyvsp[(3) - (4)].strval);
+        int is_valid = 1;
+        
+        // Vérifier si la variable existe déjà
+        if (check_variable_exists(var_name)) {
+            char error_msg[256];
+            snprintf(error_msg, sizeof(error_msg),"Variable '%s' already declared" , var_name);
+            yyerror(error_msg); 
+            is_valid = 0;
+        }
+        
+        // Vérifier si c'est un type valide
+        if (is_valid && !verify_type(type_name)) {
+            char error_msg[256];
+            snprintf(error_msg, sizeof(error_msg),"Type '%s' is not defined", var_name);
+            yyerror(error_msg);
+            is_valid = 0;
+        }
+        
+        // Ajouter la variable si tout est valide
+        if (is_valid) {
+            add_variable(var_name, type_name, get_default_value(type_name), 0);
+        }
+        
+        if (!is_valid) {
+            YYERROR;
+        }
+        
+        (yyval.strval) = var_name; // Pas besoin de strdup car var_name sera utilisé
+    ;}
+    break;
+
+  case 19:
+
+/* Line 1455 of yacc.c  */
+#line 462 "parser.y"
+    {
+        // Traitement terminé, résultat déjà stocké dans field_names et field_values
+        (yyval.strval) = strdup(""); // Simplement pour éviter les erreurs de syntaxe
+    ;}
+    break;
+
+  case 20:
+
+/* Line 1455 of yacc.c  */
+#line 466 "parser.y"
+    {
+        // Cas d'un objet vide
+        (yyval.strval) = strdup("");
+    ;}
+    break;
+
+  case 21:
+
+/* Line 1455 of yacc.c  */
+#line 473 "parser.y"
+    {
+        // Ajoute simplement une nouvelle paire field_name:value
+    ;}
+    break;
+
+  case 22:
+
+/* Line 1455 of yacc.c  */
+#line 476 "parser.y"
+    {
+        // Premier champ
+    ;}
+    break;
+
+  case 23:
+
+/* Line 1455 of yacc.c  */
+#line 482 "parser.y"
+    {
+        // Stocker le nom du champ
+        if (field_count < MAX_FIELDS) {
+            strcpy(field_names[field_count], (yyvsp[(1) - (3)].strval));
+            // La valeur a déjà été stockée dans field_values par la règle value
+            field_count++;
+        } else {
+            yyerror("Too many fields");
+        }
+        free((yyvsp[(1) - (3)].strval));
+    ;}
+    break;
+
+  case 24:
+
+/* Line 1455 of yacc.c  */
+#line 496 "parser.y"
+    {
+        if (value_count < MAX_VALUES) {
+            strcpy(field_values[value_count], (yyvsp[(1) - (1)].strval));
+            field_types[value_count] = TYPE_STRING;
+            value_count++;
+        }
+        free((yyvsp[(1) - (1)].strval));
+    ;}
+    break;
+
+  case 25:
+
+/* Line 1455 of yacc.c  */
+#line 504 "parser.y"
+    {
+        if (value_count < MAX_VALUES) {
+            strcpy(field_values[value_count], (yyvsp[(1) - (1)].strval));
+            field_types[value_count] = TYPE_NUMBER;
+            value_count++;
+        }
+        free((yyvsp[(1) - (1)].strval));
+    ;}
+    break;
+
+  case 26:
+
+/* Line 1455 of yacc.c  */
+#line 512 "parser.y"
+    {
+        if (value_count < MAX_VALUES) {
+            strcpy(field_values[value_count], (yyvsp[(1) - (1)].strval));
+            field_types[value_count] = TYPE_BOOLEAN;
+            value_count++;
+        }
+        free((yyvsp[(1) - (1)].strval));
+    ;}
+    break;
+
+  case 27:
+
+/* Line 1455 of yacc.c  */
+#line 520 "parser.y"
+    {
+        if (value_count < MAX_VALUES) {
+            strcpy(field_values[value_count], (yyvsp[(1) - (1)].strval));
+            field_types[value_count] = TYPE_IDENTIFIER;
+            value_count++;
+        }
+        free((yyvsp[(1) - (1)].strval));
+    ;}
+    break;
+
+  case 28:
+
+/* Line 1455 of yacc.c  */
+#line 531 "parser.y"
+    {
+        array_values[0] = (yyvsp[(1) - (1)].strval);
+        array_value_count = 1;
+    ;}
+    break;
+
+  case 29:
+
+/* Line 1455 of yacc.c  */
+#line 535 "parser.y"
+    {
+        if (array_value_count < MAX_ARRAY_VALUES) {
+            array_values[array_value_count++] = (yyvsp[(3) - (3)].strval);
+        } else {
+            yyerror("Too many array values");
+            YYERROR;
+        }
+    ;}
+    break;
+
+  case 30:
+
+/* Line 1455 of yacc.c  */
+#line 546 "parser.y"
+    {
+        (yyval.strval) = (yyvsp[(1) - (1)].strval);
+    ;}
+    break;
+
+  case 31:
+
+/* Line 1455 of yacc.c  */
+#line 549 "parser.y"
+    {
+        (yyval.strval) = (yyvsp[(1) - (1)].strval);
+    ;}
+    break;
+
+  case 32:
+
+/* Line 1455 of yacc.c  */
+#line 552 "parser.y"
+    {
+        (yyval.strval) = (yyvsp[(1) - (1)].strval);
+    ;}
+    break;
+
+  case 33:
+
+/* Line 1455 of yacc.c  */
+#line 555 "parser.y"
+    {
+        // Check if the identifier exists
+        int found = 0;
+        for (int i = 0; i < var_count; i++) {
+            if (strcmp(variables[i].name, (yyvsp[(1) - (1)].strval)) == 0) {
+                found = 1;
+                (yyval.strval) = strdup(variables[i].name);
+                break;
+            }
+        }
+        if (!found) {
+            char error_msg[256];
+            snprintf(error_msg, sizeof(error_msg), "Error: Undefined identifier '%s' used in array", (yyvsp[(1) - (1)].strval));
+            yyerror(error_msg);
+            YYERROR;
+        }
+    ;}
+    break;
+
+  case 34:
+
+/* Line 1455 of yacc.c  */
+#line 576 "parser.y"
+    {
+        strcpy(custom_array_elements[0], (yyvsp[(1) - (1)].strval));
+        custom_array_element_count = 1;
+        free((yyvsp[(1) - (1)].strval));
+    ;}
+    break;
+
+  case 35:
+
+/* Line 1455 of yacc.c  */
+#line 581 "parser.y"
+    {
+        if (custom_array_element_count < MAX_ARRAY_ELEMENTS) {
+            strcpy(custom_array_elements[custom_array_element_count], (yyvsp[(3) - (3)].strval));
+            custom_array_element_count++;
+        } else {
+            yyerror("Too many array elements");
+            YYERROR;
+        }
+        free((yyvsp[(3) - (3)].strval));
+    ;}
+    break;
+
+  case 36:
+
+/* Line 1455 of yacc.c  */
+#line 595 "parser.y"
+    {
+        // Create a temporary buffer for the object
+        char object_str[1024] = "{";
+        int len = 0;
+        
+        for (int i = 0; i < field_count; i++) {
+            // Format each field correctly
+            char field_entry[256];
+            
+            // Handle string value formatting (adding quotes if necessary)
+            if (field_types[i] == TYPE_STRING) {
+                // Check if already quoted
+                if (field_values[i][0] != '"') {
+                    snprintf(field_entry, sizeof(field_entry), "%s = \"%s\"", 
+                             field_names[i], field_values[i]);
+                } else {
+                    snprintf(field_entry, sizeof(field_entry), "%s = %s", 
+                             field_names[i], field_values[i]);
+                }
+            } else {
+                // For non-string types
+                snprintf(field_entry, sizeof(field_entry), "%s = %s", 
+                         field_names[i], field_values[i]);
+            }
+            
+            // Add to the object string
+            strcat(object_str, field_entry);
+            if (i < field_count - 1) {
+                strcat(object_str, ", ");
+            }
+        }
+        
+        strcat(object_str, "}");
+        
+        // Store this object and reset field counters
+        (yyval.strval) = strdup(object_str);
+        
+        // Reset field_count and value_count for the next object
+        field_count = 0;
+        value_count = 0;
+    ;}
+    break;
+
+  case 37:
+
+/* Line 1455 of yacc.c  */
+#line 639 "parser.y"
+    { (yyval.strval) = strdup(""); ;}
+    break;
+
+  case 38:
+
+/* Line 1455 of yacc.c  */
+#line 640 "parser.y"
+    { (yyval.strval) = (yyvsp[(1) - (1)].strval); ;}
+    break;
+
+  case 39:
+
+/* Line 1455 of yacc.c  */
+#line 645 "parser.y"
+    { (yyval.strval) = (yyvsp[(1) - (1)].strval); ;}
+    break;
+
+  case 40:
+
+/* Line 1455 of yacc.c  */
+#line 647 "parser.y"
     {
           /* Concatenate the previous list with ", " and the new parameter */
           char* tmp = malloc(strlen((yyvsp[(1) - (3)].strval)) + strlen((yyvsp[(3) - (3)].strval)) + 3); // extra space for comma, space, and '\0'
@@ -1446,10 +2193,10 @@ yyreduce:
       ;}
     break;
 
-  case 12:
+  case 41:
 
 /* Line 1455 of yacc.c  */
-#line 99 "parser.y"
+#line 658 "parser.y"
     {
         /* The DSL expects parameters as "var : type".
         In C, parameters are declared as "type var". 
@@ -1464,7 +2211,7 @@ yyreduce:
 
 
 /* Line 1455 of yacc.c  */
-#line 1468 "parser.tab.c"
+#line 2215 "parser.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -1676,7 +2423,7 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 109 "parser.y"
+#line 668 "parser.y"
 
 
 void yyerror(const char *s) {

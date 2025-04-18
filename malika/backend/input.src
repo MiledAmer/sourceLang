@@ -1,5 +1,4 @@
 function getUsers(request:Request):bool {
-    
-    int x
+    x:number =5;
+    return true;
 }
-

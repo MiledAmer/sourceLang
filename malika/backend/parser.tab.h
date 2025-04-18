@@ -45,20 +45,20 @@
      LPAREN = 261,
      RPAREN = 262,
      COLON = 263,
-     TYPE = 264,
-     SEMICOLON = 265,
-     FROM = 266,
-     IMPORT = 267,
-     COMMA = 268,
-     LT = 269,
-     GT = 270,
-     SLASH = 271,
-     DOT = 272,
-     LBRACKET = 273,
-     RBRACKET = 274,
-     RETURN = 275,
-     EQUALS = 276,
-     FUNCTION = 277,
+     SEMICOLON = 264,
+     COMMA = 265,
+     LBRACKET = 266,
+     RBRACKET = 267,
+     EQUALS = 268,
+     FUNCTION = 269,
+     IMPORT = 270,
+     FROM = 271,
+     TYPE = 272,
+     RETURN = 273,
+     LT = 274,
+     GT = 275,
+     SLASH = 276,
+     DOT = 277,
      IDENTIFIER = 278,
      STRING_LITERAL = 279,
      NUMBER_LITERAL = 280,
@@ -73,7 +73,7 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 12 "parser.y"
+#line 15 "parser.y"
 
     int intval;   // For numeric values
     char* strval; // For strings like IDENTIFIER

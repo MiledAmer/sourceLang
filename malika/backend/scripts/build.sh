@@ -9,7 +9,7 @@ if [ ! -f lexer.l ]; then
     exit 1
 fi
 
-if [ ! -f parser.y ]; then
+if [ ! -f parser.y ]; then  
     echo "Error: parser.y file not found!"
     exit 1
 fi
@@ -37,7 +37,7 @@ fi
 # Compile everything with GCC
 echo "Compiling with GCC..."
 # gcc -o transpiler lex.yy.c parser.tab.c
-gcc -g -o transpiler.exe lex.yy.c parser.tab.c 
+gcc -g -o transpiler.exe lex.yy.c parser.tab.c lib/*.c 
 
 
 # Check if the executable was generated
