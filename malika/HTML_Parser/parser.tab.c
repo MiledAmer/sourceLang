@@ -75,6 +75,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdbool.h>
+#include "lib/import.h"
 #include "lib/component.h"
 #include "lib/customType.h"
 #include "lib/variable.h"
@@ -91,7 +92,6 @@ bool is_validating_component =true;
 char output_buffer[10000];
 char interfaces_buffer[1000];  // Buffer pour les interfaces TypeScript
 int found = 0;
-
 
 
 typedef struct {
@@ -618,14 +618,14 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,   169,   169,   250,   334,   359,   363,   364,   365,   374,
-     384,   390,   391,   397,   398,   412,   416,   420,   428,   428,
-     437,   444,   448,   460,   465,   469,   476,   479,   485,   499,
-     507,   515,   523,   534,   666,   733,   774,   824,   861,   865,
-     876,   879,   882,   885,   906,   911,   925,   969,   993,  1019,
-    1063,  1138,  1145,  1149,  1160,  1161,  1168,  1174,  1180,  1239,
-    1284,  1317,  1342,  1348,  1349,  1358,  1367,  1368,  1378,  1387,
-    1420
+       0,   169,   169,   248,   330,   355,   359,   360,   361,   370,
+     380,   386,   387,   393,   394,   408,   412,   416,   424,   424,
+     433,   440,   444,   456,   461,   465,   472,   475,   481,   495,
+     503,   511,   519,   530,   662,   729,   770,   820,   857,   861,
+     872,   875,   878,   881,   902,   907,   921,   965,   989,  1015,
+    1059,  1134,  1141,  1145,  1156,  1157,  1164,  1170,  1176,  1235,
+    1280,  1313,  1338,  1344,  1345,  1354,  1363,  1364,  1374,  1383,
+    1416
 };
 #endif
 
@@ -1645,10 +1645,8 @@ yyreduce:
             
             // After calling
             fflush(stdout);
-            // Écrire les en-têtes nécessaires
-            printf("#include <stdio.h>\n");
-            printf("#include <stdlib.h>\n");
-            printf("#include <string.h>\n\n");
+            analyze_dependencies(output_buffer);
+            generate_includes();
             
             
             // Déclarer le buffer global
@@ -1719,15 +1717,13 @@ yyreduce:
   case 3:
 
 /* Line 1455 of yacc.c  */
-#line 250 "parser.y"
+#line 248 "parser.y"
     {
         if (!is_validating_component) {
             liberer_pile();
             
-            // Écrire les en-têtes nécessaires
-            printf("#include <stdio.h>\n");
-            printf("#include <stdlib.h>\n");
-            printf("#include <string.h>\n\n");
+            analyze_dependencies(output_buffer);
+            generate_includes();
             
             // Before calling generate_structs_and_prototypes()
             printf("// Définition des types personnalisés\n");
@@ -1806,7 +1802,7 @@ yyreduce:
   case 4:
 
 /* Line 1455 of yacc.c  */
-#line 334 "parser.y"
+#line 330 "parser.y"
     {
         if (strcmp((yyvsp[(2) - (6)].strval), "main") == 0) {
             is_validating_component = false;
@@ -1837,28 +1833,28 @@ yyreduce:
   case 5:
 
 /* Line 1455 of yacc.c  */
-#line 359 "parser.y"
+#line 355 "parser.y"
     { (yyval.strval) = strdup(""); ;}
     break;
 
   case 6:
 
 /* Line 1455 of yacc.c  */
-#line 363 "parser.y"
+#line 359 "parser.y"
     { (yyval.strval) = strdup(""); ;}
     break;
 
   case 7:
 
 /* Line 1455 of yacc.c  */
-#line 364 "parser.y"
+#line 360 "parser.y"
     { (yyval.strval) = (yyvsp[(1) - (1)].strval); ;}
     break;
 
   case 8:
 
 /* Line 1455 of yacc.c  */
-#line 365 "parser.y"
+#line 361 "parser.y"
     {
         char *tmp = malloc(strlen((yyvsp[(1) - (3)].strval)) + strlen((yyvsp[(3) - (3)].strval)) + 3);
         sprintf(tmp, "%s, %s", (yyvsp[(1) - (3)].strval), (yyvsp[(3) - (3)].strval));
@@ -1870,7 +1866,7 @@ yyreduce:
   case 9:
 
 /* Line 1455 of yacc.c  */
-#line 374 "parser.y"
+#line 370 "parser.y"
     {
         char* tmp = malloc(strlen((yyvsp[(1) - (3)].strval)) + strlen((yyvsp[(3) - (3)].strval)) + 3);
         add_identifier((yyvsp[(1) - (3)].strval), (yyvsp[(3) - (3)].strval));
@@ -1883,7 +1879,7 @@ yyreduce:
   case 10:
 
 /* Line 1455 of yacc.c  */
-#line 384 "parser.y"
+#line 380 "parser.y"
     {
         (yyval.strval) = (yyvsp[(2) - (3)].strval); // Simply pass the correctly formatted body up the parse tree
     ;}
@@ -1892,14 +1888,14 @@ yyreduce:
   case 11:
 
 /* Line 1455 of yacc.c  */
-#line 390 "parser.y"
+#line 386 "parser.y"
     { (yyval.strval) = strdup(""); ;}
     break;
 
   case 12:
 
 /* Line 1455 of yacc.c  */
-#line 391 "parser.y"
+#line 387 "parser.y"
     {
         (yyval.strval) = (yyvsp[(1) - (1)].strval); // No need for additional processing, just pass up the instructions
     ;}
@@ -1908,14 +1904,14 @@ yyreduce:
   case 13:
 
 /* Line 1455 of yacc.c  */
-#line 397 "parser.y"
+#line 393 "parser.y"
     { (yyval.strval) = (yyvsp[(1) - (1)].strval); ;}
     break;
 
   case 14:
 
 /* Line 1455 of yacc.c  */
-#line 398 "parser.y"
+#line 394 "parser.y"
     {
         if (strcmp((yyvsp[(1) - (2)].strval)," ") == 0) {
             (yyval.strval) = (yyvsp[(2) - (2)].strval); // Ignore empty instructions
@@ -1932,7 +1928,7 @@ yyreduce:
   case 15:
 
 /* Line 1455 of yacc.c  */
-#line 412 "parser.y"
+#line 408 "parser.y"
     {
         // Générer une instruction de type
         (yyval.strval) = strdup(" "); // Store the type name
@@ -1942,7 +1938,7 @@ yyreduce:
   case 16:
 
 /* Line 1455 of yacc.c  */
-#line 416 "parser.y"
+#line 412 "parser.y"
     {
         // Générer une instruction de variable
         (yyval.strval) = strdup(" "); // Store the variable name
@@ -1952,7 +1948,7 @@ yyreduce:
   case 17:
 
 /* Line 1455 of yacc.c  */
-#line 420 "parser.y"
+#line 416 "parser.y"
     {
         // Générer une instruction de retour
         (yyval.strval) = (yyvsp[(1) - (1)].strval); // Store the return value
@@ -1962,14 +1958,14 @@ yyreduce:
   case 18:
 
 /* Line 1455 of yacc.c  */
-#line 428 "parser.y"
+#line 424 "parser.y"
     {add_custom_type((yyvsp[(2) - (3)].strval));;}
     break;
 
   case 19:
 
 /* Line 1455 of yacc.c  */
-#line 429 "parser.y"
+#line 425 "parser.y"
     {
         // Générer une instruction de type
         (yyval.strval) = (yyvsp[(2) - (8)].strval); // Store the type name
@@ -1980,7 +1976,7 @@ yyreduce:
   case 20:
 
 /* Line 1455 of yacc.c  */
-#line 437 "parser.y"
+#line 433 "parser.y"
     {
         // Combine properties
         char *buffer = malloc(strlen((yyvsp[(1) - (2)].strval)) + strlen((yyvsp[(2) - (2)].strval)) + 2);
@@ -1993,14 +1989,14 @@ yyreduce:
   case 21:
 
 /* Line 1455 of yacc.c  */
-#line 444 "parser.y"
+#line 440 "parser.y"
     { (yyval.strval) = (yyvsp[(1) - (1)].strval); ;}
     break;
 
   case 22:
 
 /* Line 1455 of yacc.c  */
-#line 448 "parser.y"
+#line 444 "parser.y"
     { 
         // Propriété du type : <nom>: <type>
         // Return formatted property
@@ -2015,7 +2011,7 @@ yyreduce:
   case 23:
 
 /* Line 1455 of yacc.c  */
-#line 460 "parser.y"
+#line 456 "parser.y"
     {
         (yyval.strval) = (yyvsp[(3) - (5)].strval); // Store the HTML content
     ;}
@@ -2024,7 +2020,7 @@ yyreduce:
   case 24:
 
 /* Line 1455 of yacc.c  */
-#line 465 "parser.y"
+#line 461 "parser.y"
     {
         // Traitement terminé, résultat déjà stocké dans field_names et field_values
         (yyval.strval) = strdup(""); // Simplement pour éviter les erreurs de syntaxe
@@ -2034,7 +2030,7 @@ yyreduce:
   case 25:
 
 /* Line 1455 of yacc.c  */
-#line 469 "parser.y"
+#line 465 "parser.y"
     {
         // Cas d'un objet vide
         (yyval.strval) = strdup("");
@@ -2044,7 +2040,7 @@ yyreduce:
   case 26:
 
 /* Line 1455 of yacc.c  */
-#line 476 "parser.y"
+#line 472 "parser.y"
     {
         // Ajoute simplement une nouvelle paire field_name:value
     ;}
@@ -2053,7 +2049,7 @@ yyreduce:
   case 27:
 
 /* Line 1455 of yacc.c  */
-#line 479 "parser.y"
+#line 475 "parser.y"
     {
         // Premier champ
     ;}
@@ -2062,7 +2058,7 @@ yyreduce:
   case 28:
 
 /* Line 1455 of yacc.c  */
-#line 485 "parser.y"
+#line 481 "parser.y"
     {
         // Stocker le nom du champ
         if (field_count < MAX_FIELDS) {
@@ -2079,7 +2075,7 @@ yyreduce:
   case 29:
 
 /* Line 1455 of yacc.c  */
-#line 499 "parser.y"
+#line 495 "parser.y"
     {
         if (value_count < MAX_VALUES) {
             strcpy(field_values[value_count], (yyvsp[(1) - (1)].strval));
@@ -2093,7 +2089,7 @@ yyreduce:
   case 30:
 
 /* Line 1455 of yacc.c  */
-#line 507 "parser.y"
+#line 503 "parser.y"
     {
         if (value_count < MAX_VALUES) {
             strcpy(field_values[value_count], (yyvsp[(1) - (1)].strval));
@@ -2107,7 +2103,7 @@ yyreduce:
   case 31:
 
 /* Line 1455 of yacc.c  */
-#line 515 "parser.y"
+#line 511 "parser.y"
     {
         if (value_count < MAX_VALUES) {
             strcpy(field_values[value_count], (yyvsp[(1) - (1)].strval));
@@ -2121,7 +2117,7 @@ yyreduce:
   case 32:
 
 /* Line 1455 of yacc.c  */
-#line 523 "parser.y"
+#line 519 "parser.y"
     {
         if (value_count < MAX_VALUES) {
             strcpy(field_values[value_count], (yyvsp[(1) - (1)].strval));
@@ -2135,7 +2131,7 @@ yyreduce:
   case 33:
 
 /* Line 1455 of yacc.c  */
-#line 534 "parser.y"
+#line 530 "parser.y"
     {
         char* var_name = (yyvsp[(1) - (6)].strval);
         char* type_name = (yyvsp[(3) - (6)].strval);
@@ -2273,7 +2269,7 @@ yyreduce:
   case 34:
 
 /* Line 1455 of yacc.c  */
-#line 666 "parser.y"
+#line 662 "parser.y"
     {
         char* var_name = (yyvsp[(1) - (6)].strval);
         char* type_name = (yyvsp[(3) - (6)].strval);
@@ -2345,7 +2341,7 @@ yyreduce:
   case 35:
 
 /* Line 1455 of yacc.c  */
-#line 733 "parser.y"
+#line 729 "parser.y"
     {
         char* var_name = (yyvsp[(1) - (10)].strval);
         char* type_name = (yyvsp[(3) - (10)].strval);
@@ -2392,7 +2388,7 @@ yyreduce:
   case 36:
 
 /* Line 1455 of yacc.c  */
-#line 774 "parser.y"
+#line 770 "parser.y"
     {
         char* var_name = (yyvsp[(1) - (10)].strval);
         char* type_name = (yyvsp[(3) - (10)].strval);
@@ -2448,7 +2444,7 @@ yyreduce:
   case 37:
 
 /* Line 1455 of yacc.c  */
-#line 825 "parser.y"
+#line 821 "parser.y"
     {
         char* var_name = (yyvsp[(1) - (4)].strval);
         char* type_name = (yyvsp[(3) - (4)].strval);
@@ -2486,7 +2482,7 @@ yyreduce:
   case 38:
 
 /* Line 1455 of yacc.c  */
-#line 861 "parser.y"
+#line 857 "parser.y"
     {
         array_values[0] = (yyvsp[(1) - (1)].strval);
         array_value_count = 1;
@@ -2496,7 +2492,7 @@ yyreduce:
   case 39:
 
 /* Line 1455 of yacc.c  */
-#line 865 "parser.y"
+#line 861 "parser.y"
     {
         if (array_value_count < MAX_ARRAY_VALUES) {
             array_values[array_value_count++] = (yyvsp[(3) - (3)].strval);
@@ -2510,7 +2506,7 @@ yyreduce:
   case 40:
 
 /* Line 1455 of yacc.c  */
-#line 876 "parser.y"
+#line 872 "parser.y"
     {
         (yyval.strval) = (yyvsp[(1) - (1)].strval);
     ;}
@@ -2519,7 +2515,7 @@ yyreduce:
   case 41:
 
 /* Line 1455 of yacc.c  */
-#line 879 "parser.y"
+#line 875 "parser.y"
     {
         (yyval.strval) = (yyvsp[(1) - (1)].strval);
     ;}
@@ -2528,7 +2524,7 @@ yyreduce:
   case 42:
 
 /* Line 1455 of yacc.c  */
-#line 882 "parser.y"
+#line 878 "parser.y"
     {
         (yyval.strval) = (yyvsp[(1) - (1)].strval);
     ;}
@@ -2537,7 +2533,7 @@ yyreduce:
   case 43:
 
 /* Line 1455 of yacc.c  */
-#line 885 "parser.y"
+#line 881 "parser.y"
     {
         // Check if the identifier exists
         int found = 0;
@@ -2560,7 +2556,7 @@ yyreduce:
   case 44:
 
 /* Line 1455 of yacc.c  */
-#line 906 "parser.y"
+#line 902 "parser.y"
     {
         strcpy(custom_array_elements[0], (yyvsp[(1) - (1)].strval));
         custom_array_element_count = 1;
@@ -2571,7 +2567,7 @@ yyreduce:
   case 45:
 
 /* Line 1455 of yacc.c  */
-#line 911 "parser.y"
+#line 907 "parser.y"
     {
         if (custom_array_element_count < MAX_ARRAY_ELEMENTS) {
             strcpy(custom_array_elements[custom_array_element_count], (yyvsp[(3) - (3)].strval));
@@ -2587,7 +2583,7 @@ yyreduce:
   case 46:
 
 /* Line 1455 of yacc.c  */
-#line 925 "parser.y"
+#line 921 "parser.y"
     {
         // Create a temporary buffer for the object
         char object_str[1024] = "{";
@@ -2634,7 +2630,7 @@ yyreduce:
   case 47:
 
 /* Line 1455 of yacc.c  */
-#line 969 "parser.y"
+#line 965 "parser.y"
     {
         // Vérifier si l'identifiant existe
         char* type = get_identifier_type((yyvsp[(1) - (1)].strval));
@@ -2664,7 +2660,7 @@ yyreduce:
   case 48:
 
 /* Line 1455 of yacc.c  */
-#line 993 "parser.y"
+#line 989 "parser.y"
     {
         // Vérifier si le champ existe dans la structure
         char* var_name = (yyvsp[(1) - (3)].strval);
@@ -2696,7 +2692,7 @@ yyreduce:
   case 49:
 
 /* Line 1455 of yacc.c  */
-#line 1019 "parser.y"
+#line 1015 "parser.y"
     {
         // Array element access
         char* array_name = (yyvsp[(1) - (4)].strval);
@@ -2745,7 +2741,7 @@ yyreduce:
   case 50:
 
 /* Line 1455 of yacc.c  */
-#line 1063 "parser.y"
+#line 1059 "parser.y"
     {
         // Access to field in array element
         char* array_name = (yyvsp[(1) - (6)].strval);
@@ -2822,7 +2818,7 @@ yyreduce:
   case 51:
 
 /* Line 1455 of yacc.c  */
-#line 1138 "parser.y"
+#line 1134 "parser.y"
     {
         // Combine import instructions
         char *buffer = malloc(strlen((yyvsp[(1) - (2)].strval)) + strlen((yyvsp[(2) - (2)].strval)) + 2);
@@ -2835,14 +2831,14 @@ yyreduce:
   case 52:
 
 /* Line 1455 of yacc.c  */
-#line 1145 "parser.y"
+#line 1141 "parser.y"
     { (yyval.strval) = (yyvsp[(1) - (1)].strval); ;}
     break;
 
   case 53:
 
 /* Line 1455 of yacc.c  */
-#line 1149 "parser.y"
+#line 1145 "parser.y"
     {
         // Appeler process_import pour analyser le fichier importé
         process_import((yyvsp[(2) - (5)].strval), (yyvsp[(4) - (5)].strval));
@@ -2856,14 +2852,14 @@ yyreduce:
   case 54:
 
 /* Line 1455 of yacc.c  */
-#line 1160 "parser.y"
+#line 1156 "parser.y"
     { (yyval.strval) = strdup(""); ;}
     break;
 
   case 55:
 
 /* Line 1455 of yacc.c  */
-#line 1161 "parser.y"
+#line 1157 "parser.y"
     {
         char *buffer = malloc(strlen((yyvsp[(1) - (2)].strval)) + strlen((yyvsp[(2) - (2)].strval)) + 2);
         sprintf(buffer, "%s%s", (yyvsp[(1) - (2)].strval), (yyvsp[(2) - (2)].strval));
@@ -2876,7 +2872,7 @@ yyreduce:
   case 56:
 
 /* Line 1455 of yacc.c  */
-#line 1168 "parser.y"
+#line 1164 "parser.y"
     {
         char *buffer = malloc(strlen((yyvsp[(1) - (2)].strval)) + strlen((yyvsp[(2) - (2)].strval)) + 2);
         sprintf(buffer, "%s%s", (yyvsp[(1) - (2)].strval), (yyvsp[(2) - (2)].strval));
@@ -2888,7 +2884,7 @@ yyreduce:
   case 57:
 
 /* Line 1455 of yacc.c  */
-#line 1174 "parser.y"
+#line 1170 "parser.y"
     {
         (yyval.strval) = (yyvsp[(1) - (1)].strval);
     ;}
@@ -2897,7 +2893,7 @@ yyreduce:
   case 58:
 
 /* Line 1455 of yacc.c  */
-#line 1180 "parser.y"
+#line 1176 "parser.y"
     {
         // Vérifier que les balises ouvrantes et fermantes correspondent
         if (strcmp((yyvsp[(2) - (9)].strval), (yyvsp[(8) - (9)].strval)) != 0) {
@@ -2962,7 +2958,7 @@ yyreduce:
   case 59:
 
 /* Line 1455 of yacc.c  */
-#line 1239 "parser.y"
+#line 1235 "parser.y"
     {   
         char *buffer = malloc(1000);
         
@@ -3013,7 +3009,7 @@ yyreduce:
   case 60:
 
 /* Line 1455 of yacc.c  */
-#line 1284 "parser.y"
+#line 1280 "parser.y"
     {
         // Vérifier que les balises ouvrantes et fermantes correspondent    
         if (strcmp((yyvsp[(2) - (9)].strval), (yyvsp[(8) - (9)].strval)) != 0) {
@@ -3051,7 +3047,7 @@ yyreduce:
   case 61:
 
 /* Line 1455 of yacc.c  */
-#line 1317 "parser.y"
+#line 1313 "parser.y"
     {
         // Check if it's an imported component
         char* component_content = find_imported_component((yyvsp[(2) - (5)].strval));
@@ -3082,7 +3078,7 @@ yyreduce:
   case 62:
 
 /* Line 1455 of yacc.c  */
-#line 1342 "parser.y"
+#line 1338 "parser.y"
     {
         (yyval.strval) = (yyvsp[(1) - (1)].strval);
     ;}
@@ -3091,14 +3087,14 @@ yyreduce:
   case 63:
 
 /* Line 1455 of yacc.c  */
-#line 1348 "parser.y"
+#line 1344 "parser.y"
     { (yyval.strval) = strdup(""); ;}
     break;
 
   case 64:
 
 /* Line 1455 of yacc.c  */
-#line 1349 "parser.y"
+#line 1345 "parser.y"
     {
         char *buffer = malloc(strlen((yyvsp[(1) - (2)].strval)) + strlen((yyvsp[(2) - (2)].strval)) + 2);
         sprintf(buffer, "%s;%s", (yyvsp[(1) - (2)].strval), (yyvsp[(2) - (2)].strval));
@@ -3110,7 +3106,7 @@ yyreduce:
   case 65:
 
 /* Line 1455 of yacc.c  */
-#line 1358 "parser.y"
+#line 1354 "parser.y"
     {
         char *buffer = malloc(strlen((yyvsp[(1) - (3)].strval)) + strlen((yyvsp[(3) - (3)].strval)) + 5);
         sprintf(buffer, "%s=%s", (yyvsp[(1) - (3)].strval), (yyvsp[(3) - (3)].strval));
@@ -3122,14 +3118,14 @@ yyreduce:
   case 66:
 
 /* Line 1455 of yacc.c  */
-#line 1367 "parser.y"
+#line 1363 "parser.y"
     { (yyval.strval) = strdup(""); ;}
     break;
 
   case 67:
 
 /* Line 1455 of yacc.c  */
-#line 1368 "parser.y"
+#line 1364 "parser.y"
     { 
         char* tmp = malloc(strlen((yyvsp[(1) - (2)].strval)) + strlen((yyvsp[(2) - (2)].strval)) + 2);
         sprintf(tmp, "%s %s", (yyvsp[(1) - (2)].strval), (yyvsp[(2) - (2)].strval));
@@ -3142,7 +3138,7 @@ yyreduce:
   case 68:
 
 /* Line 1455 of yacc.c  */
-#line 1378 "parser.y"
+#line 1374 "parser.y"
     {
         char* tmp = malloc(strlen((yyvsp[(1) - (5)].strval)) + strlen((yyvsp[(4) - (5)].strval)) + 10);
         sprintf(tmp, "%s={%s}", (yyvsp[(1) - (5)].strval), (yyvsp[(4) - (5)].strval));
@@ -3154,7 +3150,7 @@ yyreduce:
   case 69:
 
 /* Line 1455 of yacc.c  */
-#line 1387 "parser.y"
+#line 1383 "parser.y"
     {
         char* type = get_identifier_type((yyvsp[(1) - (1)].strval));
         // if (type == NULL) {
@@ -3193,7 +3189,7 @@ yyreduce:
   case 70:
 
 /* Line 1455 of yacc.c  */
-#line 1420 "parser.y"
+#line 1416 "parser.y"
     {
         (yyval.strval)= (yyvsp[(2) - (3)].strval);
         
@@ -3203,7 +3199,7 @@ yyreduce:
 
 
 /* Line 1455 of yacc.c  */
-#line 3207 "parser.tab.c"
+#line 3203 "parser.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -3415,7 +3411,7 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 1426 "parser.y"
+#line 1422 "parser.y"
 
 
 void yyerror(const char *s) {

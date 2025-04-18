@@ -4,6 +4,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdbool.h>
+#include "lib/import.h"
 #include "lib/component.h"
 #include "lib/customType.h"
 #include "lib/variable.h"
@@ -20,7 +21,6 @@ bool is_validating_component =true;
 char output_buffer[10000];
 char interfaces_buffer[1000];  // Buffer pour les interfaces TypeScript
 int found = 0;
-
 
 
 typedef struct {
@@ -178,10 +178,8 @@ program:
             
             // After calling
             fflush(stdout);
-            // Écrire les en-têtes nécessaires
-            printf("#include <stdio.h>\n");
-            printf("#include <stdlib.h>\n");
-            printf("#include <string.h>\n\n");
+            analyze_dependencies(output_buffer);
+            generate_includes();
             
             
             // Déclarer le buffer global
@@ -251,10 +249,8 @@ program:
         if (!is_validating_component) {
             liberer_pile();
             
-            // Écrire les en-têtes nécessaires
-            printf("#include <stdio.h>\n");
-            printf("#include <stdlib.h>\n");
-            printf("#include <string.h>\n\n");
+            analyze_dependencies(output_buffer);
+            generate_includes();
             
             // Before calling generate_structs_and_prototypes()
             printf("// Définition des types personnalisés\n");
