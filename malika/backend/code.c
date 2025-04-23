@@ -1,5 +1,8 @@
 bool getUsers(Request request) {
-	int x = 5;
-	true
+	return true;
 }
-✅ OK
+bool getUser(Request request, int id) {
+	//hello get user true "hhhhh" 
+return true;
+}
+

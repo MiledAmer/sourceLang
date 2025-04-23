@@ -22,13 +22,14 @@ char current_component[256];
 %token <strval> IDENTIFIER STRING_LITERAL NUMBER_LITERAL BOOLEAN_LITERAL 
 %type <strval> element parameters typed_param_list typed_param function_content list_function function program return_instruction instruction instructions 
 %type <strval> field_value_list field_values field_value value variable_instruction custom_type_array_elements array_values array_value custom_type_object 
+%type <strval> comment_instruction
 %start program
 
 %%
 
 program:
       element
-      |function
+      |list_function
     ;
 
 element:
@@ -41,26 +42,27 @@ element:
     ;
 
 list_function:
-    function{
-        /* The first function in the list */
-        $$ = strdup($1);
-    }
-    |list_function function
-    { 
-        /* Concatenate the previous list with the new function */
-        char* tmp = malloc(strlen($1) + strlen($2) + 3); // extra space for comma, space, and '\0'
-        sprintf(tmp, "%s\n %s", $1, $2);
+    function {
+        char* tmp = malloc(strlen($1) + 2); // Space for newline and '\0'
+        if (tmp == NULL) {
+            yyerror("Memory allocation failed");
+            YYERROR;
+        }
+        sprintf(tmp, "%s\n", $1);
         free($1);
         $$ = tmp;
     }
-
+    | function list_function { 
+       
+        $$ = strdup(" ");
+    }
+;
 
 function:
     FUNCTION IDENTIFIER LPAREN parameters RPAREN COLON IDENTIFIER function_content
     {
         /* $2 is the function name and $4 is the parameter list */
         printf("%s %s(%s) {\n",$7, $2, $4);
-        declare_variables();
         printf("\t%s\n}\n",$8);
         free($2);
         free($7);
@@ -102,6 +104,10 @@ instruction:
         // Générer une instruction de retour
         $$ = $1; // Store the return value
     }
+    |comment_instruction {
+        // Générer une instruction de commentaire
+        $$ =$1; // Store the comment
+    }   
     
 ;
 
@@ -122,14 +128,44 @@ return_instruction:
             YYERROR;
         }
         else {
-            $$ = strdup($2); // Store the return value
+            char* tmp = malloc(strlen($2) + 2); // Space for newline and '\0'
+            sprintf(tmp, "return %s;", $2);
+            $$ = tmp;
+            
         }
        
     }
     |RETURN BOOLEAN_LITERAL SEMICOLON {
-        $$ = strdup($2); // Store the return value
+        char* tmp = malloc(strlen($2) + 2); // Space for newline and '\0'
+        sprintf(tmp, "return %s;", $2);
+        $$ = tmp;
     }
 ;
+
+comment_instruction:
+
+    SLASH SLASH comment_instruction SEMICOLON {
+        char* tmp = malloc(strlen($3) + 2); // Space for newline and '\0'
+        sprintf(tmp, "//%s", $3);
+        $$ = tmp;
+    }
+    | SLASH SLASH comment_instruction {
+        char* tmp = malloc(strlen($3) + 2); // Space for newline and '\0'
+        sprintf(tmp, "//%s", $3);
+        $$ = tmp;
+    }
+    |value comment_instruction {
+        char* tmp = malloc(strlen($1) + strlen($2) + 2); // Space for newline and '\0'
+        sprintf(tmp, "%s %s", $1, $2);
+        $$ = tmp
+    }
+    |value{
+        char* tmp = malloc(strlen($1) + 2); // Space for newline and '\0'
+        sprintf(tmp, "%s ", $1);
+        $$ = tmp
+    }
+;    
+         
 
 
 variable_instruction:

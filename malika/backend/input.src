@@ -1,4 +1,9 @@
 function getUsers(request:Request):bool {
     x:number =5;
     return true;
+    
+}
+function getUser(request:Request, id:int):bool {
+    // hello get y
+    return true;
 }
