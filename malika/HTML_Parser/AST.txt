@@ -1,4 +1,30 @@
 arbre des regle sous forme de AST
+
+
+Program
+ └── Block Identifier
+      ├── Block
+      │    ├── LBARK
+      │    ├── Block Content
+      │    │    ├── Type Def
+      │    │    ├── Instructions
+      │    │    ├── Condition
+      │    │    ├── Loop
+      │    │    ├── Return
+      │    │    └── Block
+      │    └── RBARK
+      └── Program
+
+Block Identifier
+  │  │ └── COMPONENT :Front
+  │  │  │  └── traitement static : C 
+  │  │  └── traitement dynamique :ts
+  │  └── FUNCTION :back
+  └── SERVER :server
+
+
+
+
 Program
  └── ElementInitiale
    │  ├── COMPONENT

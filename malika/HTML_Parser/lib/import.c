@@ -4,7 +4,7 @@
 #include "import.h"
 #include "identifier.h"
 #include "variable.h"
-
+#include "buffer.h"
 
 
 int needs_assert = 0;
@@ -71,7 +71,7 @@ void generate_includes() {
 
 
 // Analyse des dépendances en fonction du contenu des identifiants et types
-void analyze_dependencies(char* output_buffer) {
+void analyze_dependencies(const DynamicBuffer* output_buffer) {
     // Dépendances essentielles pour le fonctionnement de base
     needs_stdio = 1;  // Pour printf
     needs_stdlib = 1; // Pour malloc/free
@@ -100,69 +100,69 @@ void analyze_dependencies(char* output_buffer) {
     }
     
     // Analyse du contenu du buffer pour détecter d'autres dépendances
-    if (strstr(output_buffer, "isalpha") != NULL || 
-        strstr(output_buffer, "isdigit") != NULL || 
-        strstr(output_buffer, "tolower") != NULL) {
+    if (strstr(output_buffer->data, "isalpha") != NULL || 
+        strstr(output_buffer->data, "isdigit") != NULL || 
+        strstr(output_buffer->data, "tolower") != NULL) {
         needs_ctype = 1;
     }
     
-    if (strstr(output_buffer, "malloc") != NULL || 
-        strstr(output_buffer, "free") != NULL || 
-        strstr(output_buffer, "exit") != NULL) {
+    if (strstr(output_buffer->data, "malloc") != NULL || 
+        strstr(output_buffer->data, "free") != NULL || 
+        strstr(output_buffer->data, "exit") != NULL) {
         needs_stdlib = 1;
     }
     
-    if (strstr(output_buffer, "sin") != NULL || 
-        strstr(output_buffer, "cos") != NULL || 
-        strstr(output_buffer, "sqrt") != NULL) {
+    if (strstr(output_buffer->data, "sin") != NULL || 
+        strstr(output_buffer->data, "cos") != NULL || 
+        strstr(output_buffer->data, "sqrt") != NULL) {
         needs_math = 1;
     }
     
-    if (strstr(output_buffer, "printf") != NULL || 
-        strstr(output_buffer, "scanf") != NULL || 
-        strstr(output_buffer, "fprintf") != NULL) {
+    if (strstr(output_buffer->data, "printf") != NULL || 
+        strstr(output_buffer->data, "scanf") != NULL || 
+        strstr(output_buffer->data, "fprintf") != NULL) {
         needs_stdio = 1;
     }
     
-    if (strstr(output_buffer, "strcpy") != NULL || 
-        strstr(output_buffer, "strlen") != NULL || 
-        strstr(output_buffer, "strcat") != NULL) {
+    if (strstr(output_buffer->data, "strcpy") != NULL || 
+        strstr(output_buffer->data, "strlen") != NULL || 
+        strstr(output_buffer->data, "strcat") != NULL) {
         needs_string = 1;
     }
     
-    if (strstr(output_buffer, "assert") != NULL) {
+    if (strstr(output_buffer->data, "assert") != NULL) {
         needs_assert = 1;
     }
     
-    if (strstr(output_buffer, "errno") != NULL) {
+    if (strstr(output_buffer->data, "errno") != NULL) {
         needs_errno = 1;
     }
     
-    if (strstr(output_buffer, "setjmp") != NULL || 
-        strstr(output_buffer, "longjmp") != NULL) {
+    if (strstr(output_buffer->data, "setjmp") != NULL || 
+        strstr(output_buffer->data, "longjmp") != NULL) {
         needs_setjmp = 1;
     }
     
-    if (strstr(output_buffer, "signal") != NULL) {
+    if (strstr(output_buffer->data, "signal") != NULL) {
         needs_signal = 1;
     }
     
-    if (strstr(output_buffer, "open") != NULL || 
-        strstr(output_buffer, "close") != NULL || 
-        strstr(output_buffer, "read") != NULL || 
-        strstr(output_buffer, "write") != NULL) {
+    if (strstr(output_buffer->data, "open") != NULL || 
+        strstr(output_buffer->data, "close") != NULL || 
+        strstr(output_buffer->data, "read") != NULL || 
+        strstr(output_buffer->data, "write") != NULL) {
         needs_unistd = 1;
     }
     
-    if (strstr(output_buffer, "O_RDONLY") != NULL || 
-        strstr(output_buffer, "O_WRONLY") != NULL || 
-        strstr(output_buffer, "O_CREAT") != NULL) {
+    if (strstr(output_buffer->data, "O_RDONLY") != NULL || 
+        strstr(output_buffer->data, "O_WRONLY") != NULL || 
+        strstr(output_buffer->data, "O_CREAT") != NULL) {
         needs_fcntl = 1;
     }
     
-    if (strstr(output_buffer, "thrd_") != NULL || 
-        strstr(output_buffer, "mtx_") != NULL || 
-        strstr(output_buffer, "cnd_") != NULL) {
+    if (strstr(output_buffer->data, "thrd_") != NULL || 
+        strstr(output_buffer->data, "mtx_") != NULL || 
+        strstr(output_buffer->data, "cnd_") != NULL) {
         needs_threads = 1;
     }
 }

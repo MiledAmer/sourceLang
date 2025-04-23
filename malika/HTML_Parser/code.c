@@ -9,33 +9,36 @@ typedef struct {
     int age;
 } User;
 
-char output_buffer[10000] = {
-    "<div id='main'>\n"
-    "\n"
-    "	<div>\n"
-    "	<h1>malika</h1>\n"
-    "	\n"
-    "	<h1>malika</h1>\n"
-    "	\n"
-    "	<h3>miled</h3>\n"
-    "	\n"
-    "	<h1>12</h1>\n"
-    "	<div id='cardComponent'>\n"
-    "\n"
-    "        <div>\n"
-    "            <h1>miled</h1>\n"
-    "            <p>22</p>\n"
-    "            <h2>World</h2>\n"
-    "        </div>\n"
-    "    \n"
-    "</div><div id='userProfile'>\n"
-    "\n"
-    "        <p>Malika</p>\n"
-    "    \n"
-    "</div></div>\n"
-    "	\n"
-    "</div>"
-};
+// Définition du buffer de sortie
+const char* generate_output_buffer() {
+    static char buffer[] = 
+        "<div id='main'>\n"
+        "\n"
+        "	<div>\n"
+        "	<h1>malika</h1>\n"
+        "	\n"
+        "	<h1>malika</h1>\n"
+        "	\n"
+        "	<h3>miled</h3>\n"
+        "	\n"
+        "	<h1>12</h1>\n"
+        "	<div id='cardComponent'>\n"
+        "\n"
+        "        <div>\n"
+        "            <h1>miled</h1>\n"
+        "            <p>22</p>\n"
+        "            <h2>World</h2>\n"
+        "        </div>\n"
+        "    \n"
+        "</div><div id='userProfile'>\n"
+        "\n"
+        "        <p>Malika</p>\n"
+        "    \n"
+        "</div></div>\n"
+        "	\n"
+        "</div>";
+    return buffer;
+}
 
 // Fonction pour générer un fichier HTML avec le contenu du buffer
 void generate_html(const char *filename) {
@@ -44,8 +47,6 @@ void generate_html(const char *filename) {
         fprintf(stderr, "Error: Failed to open file %s for writing\n", filename);
         return;
     }
-    
-    // Écrire l'en-tête HTML standard
     fprintf(file, "<!DOCTYPE html>\n");
     fprintf(file, "<html lang=\"en\">\n");
     fprintf(file, "<head>\n");
@@ -54,14 +55,9 @@ void generate_html(const char *filename) {
     fprintf(file, "    <title>Generated Component</title>\n");
     fprintf(file, "</head>\n");
     fprintf(file, "<body>\n");
-    
-    // Écrire le contenu du buffer
-    fprintf(file, "%s\n", output_buffer);
-    
-    // Fermer le document HTML
+    fprintf(file, "%s\n", generate_output_buffer());
     fprintf(file, "</body>\n");
     fprintf(file, "</html>\n");
-    
     fclose(file);
     printf("HTML file generated successfully: %s\n", filename);
 }

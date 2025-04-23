@@ -1,6 +1,6 @@
 #ifndef IMPORT_H
 #define IMPORT_H
-
+#include "buffer.h"
 
 extern int needs_assert ;
 extern int needs_complex ;
@@ -34,6 +34,6 @@ extern int needs_threads;
 void generate_includes();
 
 // Analyse des dépendances en fonction du contenu des identifiants et types
-void analyze_dependencies(char* output_buffer); ;
+void analyze_dependencies(const DynamicBuffer* output_buffer); ;
 
 #endif
