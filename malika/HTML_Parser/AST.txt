@@ -2,20 +2,21 @@ arbre des regle sous forme de AST
 
 
 Program
- └── Block Identifier
-      ├── Block
-      │    ├── LBARK
-      │    ├── Block Content
-      │    │    ├── Type Def
-      │    │    ├── Instructions
-      │    │    ├── Condition
-      │    │    ├── Loop
-      │    │    ├── Return
-      │    │    └── Block
-      │    └── RBARK
+ ├── import
+ └── Block 
+      ├── Block identifier
+      ├── LBARK
+      ├── Block Content
+      │      ├── Type Def
+      │      ├── Instructions
+      │      ├── Condition
+      │      ├── Loop
+      │      ├── Return
+      │      └── Block
+      ├── RBARK
       └── Program
 
-Block Identifier
+  Block 
   │  │ └── COMPONENT :Front
   │  │  │  └── traitement static : C 
   │  │  └── traitement dynamique :ts
