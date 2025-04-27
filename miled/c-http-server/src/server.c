@@ -144,60 +144,42 @@ void parse_request(const char *buffer, HttpRequest *req)
     char method[16], path[256], protocol[16];
     if (sscanf(buffer, "%15s %255s %15s", method, path, protocol) != 3)
     {
-        return; // Invalid request
+        return;
     }
 
-    // Convert method to enum using a switch statement
-    switch (method[0])
+    if (strcmp(method, "GET") == 0)
     {
-    case 'G':
-        if (strcmp(method, "GET") == 0)
-        {
-            req->method = HTTP_GET;
-        }
-        break;
-    case 'P':
-        if (strcmp(method, "POST") == 0)
-        {
-            req->method = HTTP_POST;
-        }
-        else if (strcmp(method, "PUT") == 0)
-        {
-            req->method = HTTP_PUT;
-        }
-        else if (strcmp(method, "PATCH") == 0)
-        {
-            req->method = HTTP_PATCH;
-        }
-        break;
-    case 'D':
-        if (strcmp(method, "DELETE") == 0)
-        {
-            req->method = HTTP_DELETE;
-        }
-        break;
-    case 'H':
-        if (strcmp(method, "HEAD") == 0)
-        {
-            req->method = HTTP_HEAD;
-        }
-        else if (strcmp(method, "HOST") == 0)
-        {
-            // This is a placeholder for the HOST method, if needed.
-        }
-        break;
-    case 'O':
-        if (strcmp(method, "OPTIONS") == 0)
-        {
-            req->method = HTTP_OPTIONS;
-        }
-        break;
-    default:
-        req->method = HTTP_UNSUPPORTED; // Unsupported HTTP method
-        break;
+        req->method = HTTP_GET;
+    }
+    else if (strcmp(method, "POST") == 0)
+    {
+        req->method = HTTP_POST;
+    }
+    else if (strcmp(method, "PUT") == 0)
+    {
+        req->method = HTTP_PUT;
+    }
+    else if (strcmp(method, "PATCH") == 0)
+    {
+        req->method = HTTP_PATCH;
+    }
+    else if (strcmp(method, "DELETE") == 0)
+    {
+        req->method = HTTP_DELETE;
+    }
+    else if (strcmp(method, "HEAD") == 0)
+    {
+        req->method = HTTP_HEAD;
+    }
+    else if (strcmp(method, "OPTIONS") == 0)
+    {
+        req->method = HTTP_OPTIONS;
+    }
+    else
+    {
+        req->method = HTTP_UNSUPPORTED;
     }
 
-    // Copy path and protocol
     strncpy(req->path, path, sizeof(req->path) - 1);
     strncpy(req->protocol, protocol, sizeof(req->protocol) - 1);
 
@@ -205,9 +187,10 @@ void parse_request(const char *buffer, HttpRequest *req)
     char *query_string = strchr(req->path, '?');
     if (query_string)
     {
-        *query_string = '\0';                  // Remove '?' from the path
-        query_string++;                        // Move to the start of the query string
-        parse_query_params(query_string, req); // Function to extract key-value pairs
+        *query_string = '\0';                  
+        query_string++;                        
+        parse_query_params(query_string, req); 
+        printf("Query string: %s\n", query_string);
     }
 
     // Now, extract headers and body
@@ -228,7 +211,6 @@ void parse_request(const char *buffer, HttpRequest *req)
     }
 }
 
-// Function to parse query parameters (key=value pairs in the URL)
 void parse_query_params(const char *query_string, HttpRequest *req)
 {
     char *query_copy = strdup(query_string);

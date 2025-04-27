@@ -12,17 +12,16 @@ HttpResponse handle_bonjour_route(const HttpRequest *req)
         if (printed_json != NULL)
         {
             printf("JSON: \n%s\n", printed_json);
-            free(printed_json); // Free the printed string when done
+            free(printed_json); 
         }
-
-        // Always free the cJSON object after use
+        
         cJSON_Delete(json);
     }
     else
     {
         printf("No body received.\n");
     }
-    return (HttpResponse){"bonjour", "text/plain", 200};
+    return (HttpResponse){req->body, "application/json", 200};
 }
 
 HttpResponse handle_hello_route(const HttpRequest *req)

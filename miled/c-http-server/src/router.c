@@ -44,7 +44,6 @@ bool router_dispatch(socket_fd_t client_socket, HttpRequest *req)
 
     char key[512];
     build_route_key(key, sizeof(key), req->method, req->path);
-    printf("Dispatching route: %s\n", key);
 
     Route *entry = raxFind(router_tree, (unsigned char *)key, strlen(key));
 
