@@ -1,4 +1,5 @@
 #include "router.h"
+#include "server.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>

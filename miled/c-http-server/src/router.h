@@ -2,8 +2,28 @@
 #define ROUTER_H
 
 #include "platform.h"
-#include "server.h"
 #include "../dependencies/rax/rax.h"
+
+#define MAX_ROUTE_PARAMS 10
+#define MAX_PARAM_KEY 64
+#define MAX_PARAM_VALUE 128
+
+typedef struct
+{
+    HttpMethod method;
+    char path[256];
+    char protocol[16];
+    size_t params_count;
+    char params_keys[MAX_ROUTE_PARAMS][MAX_PARAM_KEY];
+    char params_values[MAX_ROUTE_PARAMS][MAX_PARAM_VALUE];
+} HttpRequest;
+
+typedef struct
+{
+    const char *body;
+    const char *content_type;
+    int status_code;
+} HttpResponse;
 
 typedef HttpResponse (*RouteHandler)(const HttpRequest *req);
 
