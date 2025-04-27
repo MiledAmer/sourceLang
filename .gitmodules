@@ -1,0 +1,6 @@
+[submodule "miled/c-http-server/dependencies/cJSON"]
+	path = miled/c-http-server/dependencies/cJSON
+	url = https://github.com/DaveGamble/cJSON.git
+[submodule "miled/c-http-server/dependencies/rax"]
+	path = miled/c-http-server/dependencies/rax
+	url = https://github.com/antirez/rax.git

@@ -10,6 +10,10 @@
 #define BUFFER_SIZE 30000
 #endif
 
+#define MAX_ROUTE_PARAMS 10
+#define MAX_PARAM_KEY 64
+#define MAX_PARAM_VALUE 128
+
 // Platform-agnostic types
 typedef struct
 {
@@ -41,7 +45,17 @@ typedef struct
     HttpMethod method;
     char path[256];
     char protocol[16];
+    size_t params_count;
+    char params_keys[MAX_ROUTE_PARAMS][MAX_PARAM_KEY];
+    char params_values[MAX_ROUTE_PARAMS][MAX_PARAM_VALUE];
 } HttpRequest;
+
+typedef struct
+{
+    const char *body;
+    const char *content_type;
+    int status_code;
+} HttpResponse;
 
 // Core functions
 ServerInstance server_init(const ServerConfig *config);

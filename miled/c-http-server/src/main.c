@@ -1,5 +1,16 @@
 #include "server.h"
+#include "router.h"
 #include "platform.h"
+
+HttpResponse handle_hello_route(const HttpRequest *req)
+{
+    return (HttpResponse){"Hello, World!", "text/plain", 200};
+}
+
+HttpResponse handle_bonjour_route(const HttpRequest *req)
+{
+    return (HttpResponse){"bonjour", "text/plain", 200};
+}
 
 int main()
 {
@@ -17,6 +28,10 @@ int main()
         log_error("Server initialization failed");
         return 1;
     }
+    router_init();
+
+    router_add_route(HTTP_POST, "/bonjour", handle_bonjour_route);
+    router_add_route(HTTP_GET, "/hello", handle_hello_route);
 
     server_run(&server);
     server_cleanup(&server);

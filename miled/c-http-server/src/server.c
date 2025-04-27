@@ -117,57 +117,59 @@ void handle_client(socket_fd_t client_socket)
 
         const char *response;
 
-        // Route requests
-        if (req.method == HTTP_GET)
-        {
-            if (strcmp(req.path, "/") == 0)
-            {
-                response = build_response(
-                    "Hello, World!",
-                    "text/plain",
-                    200);
-            }
-            else if (strcmp(req.path, "/users") == 0)
-            {
-                response = build_response(
-                    "User List: Alice, Bob",
-                    "application/json",
-                    200);
-            }
-            else
-            {
-                response = build_response(
-                    "404 Not Found",
-                    "text/plain",
-                    404);
-            }
-        }
-        else if (req.method == HTTP_POST)
-        {
-            if (strcmp(req.path, "/users") == 0)
-            {
-                response = build_response(
-                    "{\"status\": \"User created\"}",
-                    "application/json",
-                    201);
-            }
-            else
-            {
-                response = build_response(
-                    "404 Not Found",
-                    "text/plain",
-                    404);
-            }
-        }
-        else
-        {
-            response = build_response(
-                "400 Bad Request",
-                "text/plain",
-                400);
-        }
+        router_dispatch(client_socket, &req);
 
-        send(client_socket, response, strlen(response), 0);
+        // Route requests
+        // if (req.method == HTTP_GET)
+        // {
+        //     if (strcmp(req.path, "/") == 0)
+        //     {
+        //         response = build_response(
+        //             "Hello, World!",
+        //             "text/plain",
+        //             200);
+        //     }
+        //     else if (strcmp(req.path, "/users") == 0)
+        //     {
+        //         response = build_response(
+        //             "User List: Alice, Bob",
+        //             "application/json",
+        //             200);
+        //     }
+        //     else
+        //     {
+        //         response = build_response(
+        //             "404 Not Found",
+        //             "text/plain",
+        //             404);
+        //     }
+        // }
+        // else if (req.method == HTTP_POST)
+        // {
+        //     if (strcmp(req.path, "/users") == 0)
+        //     {
+        //         response = build_response(
+        //             "{\"status\": \"User created\"}",
+        //             "application/json",
+        //             201);
+        //     }
+        //     else
+        //     {
+        //         response = build_response(
+        //             "404 Not Found",
+        //             "text/plain",
+        //             404);
+        //     }
+        // }
+        // else
+        // {
+        //     response = build_response(
+        //         "400 Bad Request",
+        //         "text/plain",
+        //         400);
+        // }
+
+        // send(client_socket, response, strlen(response), 0);
     }
 }
 
