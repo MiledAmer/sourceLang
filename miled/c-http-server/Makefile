@@ -1,6 +1,7 @@
 # Compiler & flags
 CC = gcc
-CFLAGS = -Wall -Wextra -std=c99 -g
+# delete -std=c99 it was after -Wextra
+CFLAGS = -Wall -Wextra -g
 LDFLAGS = -lpthread
 
 # Directories

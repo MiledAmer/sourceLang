@@ -8,6 +8,18 @@
 #define MAX_PARAM_KEY 64
 #define MAX_PARAM_VALUE 128
 
+typedef enum
+{
+    HTTP_GET,
+    HTTP_POST,
+    HTTP_PUT,
+    HTTP_PATCH,
+    HTTP_DELETE,
+    HTTP_HEAD,
+    HTTP_OPTIONS,
+    HTTP_UNSUPPORTED
+} HttpMethod;
+
 typedef struct
 {
     HttpMethod method;

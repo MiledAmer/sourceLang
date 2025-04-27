@@ -26,19 +26,6 @@ typedef struct
     struct sockaddr_in address;
 } ServerInstance;
 
-typedef enum
-{
-    HTTP_GET,
-    HTTP_POST,
-    HTTP_PUT,
-    HTTP_PATCH,
-    HTTP_DELETE,
-    HTTP_HEAD,
-    HTTP_OPTIONS,
-    HTTP_UNSUPPORTED
-} HttpMethod;
-
-
 // Core functions
 ServerInstance server_init(const ServerConfig *config);
 void server_run(ServerInstance *instance);
