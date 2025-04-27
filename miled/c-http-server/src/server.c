@@ -2,6 +2,7 @@
 #include "server.h"
 #include "platform.h"
 #include "router.h"
+#include <string.h>
 
 ServerInstance server_init(const ServerConfig *config)
 {
@@ -116,8 +117,6 @@ void handle_client(socket_fd_t client_socket)
                                                                         : "UNKNOWN",
                req.path);
 
-        const char *response;
-
         router_dispatch(client_socket, &req);
     }
 }
@@ -136,21 +135,119 @@ void parse_request(const char *buffer, HttpRequest *req)
     req->method = HTTP_UNSUPPORTED;
     memset(req->path, 0, sizeof(req->path));
     memset(req->protocol, 0, sizeof(req->protocol));
+    req->params_count = 0;
+    memset(req->params_keys, 0, sizeof(req->params_keys));
+    memset(req->params_values, 0, sizeof(req->params_values));
+    req->body = NULL; // No body initially
 
-    // Read first line
-    char method[16];
-    if (sscanf(buffer, "%15s %255s %15s", method, req->path, req->protocol) != 3)
+    // Read first line (method, path, protocol)
+    char method[16], path[256], protocol[16];
+    if (sscanf(buffer, "%15s %255s %15s", method, path, protocol) != 3)
     {
-        return;
+        return; // Invalid request
     }
 
-    // Convert method to enum
-    if (strcmp(method, "GET") == 0)
+    // Convert method to enum using a switch statement
+    switch (method[0])
     {
-        req->method = HTTP_GET;
+    case 'G':
+        if (strcmp(method, "GET") == 0)
+        {
+            req->method = HTTP_GET;
+        }
+        break;
+    case 'P':
+        if (strcmp(method, "POST") == 0)
+        {
+            req->method = HTTP_POST;
+        }
+        else if (strcmp(method, "PUT") == 0)
+        {
+            req->method = HTTP_PUT;
+        }
+        else if (strcmp(method, "PATCH") == 0)
+        {
+            req->method = HTTP_PATCH;
+        }
+        break;
+    case 'D':
+        if (strcmp(method, "DELETE") == 0)
+        {
+            req->method = HTTP_DELETE;
+        }
+        break;
+    case 'H':
+        if (strcmp(method, "HEAD") == 0)
+        {
+            req->method = HTTP_HEAD;
+        }
+        else if (strcmp(method, "HOST") == 0)
+        {
+            // This is a placeholder for the HOST method, if needed.
+        }
+        break;
+    case 'O':
+        if (strcmp(method, "OPTIONS") == 0)
+        {
+            req->method = HTTP_OPTIONS;
+        }
+        break;
+    default:
+        req->method = HTTP_UNSUPPORTED; // Unsupported HTTP method
+        break;
     }
-    else if (strcmp(method, "POST") == 0)
+
+    // Copy path and protocol
+    strncpy(req->path, path, sizeof(req->path) - 1);
+    strncpy(req->protocol, protocol, sizeof(req->protocol) - 1);
+
+    // Extract query parameters (if any)
+    char *query_string = strchr(req->path, '?');
+    if (query_string)
     {
-        req->method = HTTP_POST;
+        *query_string = '\0';                  // Remove '?' from the path
+        query_string++;                        // Move to the start of the query string
+        parse_query_params(query_string, req); // Function to extract key-value pairs
     }
+
+    // Now, extract headers and body
+    const char *headers_start = strstr(buffer, "\r\n");
+    if (headers_start)
+    {
+        headers_start += 2; // Skip the initial \r\n after the request line
+
+        // Find the body start after the headers (double CRLF)
+        const char *body_start = strstr(headers_start, "\r\n\r\n");
+        if (body_start)
+        {
+            body_start += 4; // Skip the \r\n\r\n separator
+
+            // Extract the body (for POST/PUT, etc.)
+            req->body = strdup(body_start); // Allocate memory for body
+        }
+    }
+}
+
+// Function to parse query parameters (key=value pairs in the URL)
+void parse_query_params(const char *query_string, HttpRequest *req)
+{
+    char *query_copy = strdup(query_string);
+    char *param = strtok(query_copy, "&");
+
+    while (param && req->params_count < MAX_ROUTE_PARAMS)
+    {
+        char *key = strtok(param, "=");
+        char *value = strtok(NULL, "=");
+
+        if (key && value)
+        {
+            // Ensure no buffer overflow for keys/values
+            strncpy(req->params_keys[req->params_count], key, MAX_PARAM_KEY - 1);
+            strncpy(req->params_values[req->params_count], value, MAX_PARAM_VALUE - 1);
+            req->params_count++;
+        }
+        param = strtok(NULL, "&");
+    }
+
+    free(query_copy);
 }

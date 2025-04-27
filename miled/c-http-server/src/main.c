@@ -1,15 +1,33 @@
 #include "server.h"
 #include "router.h"
 #include "platform.h"
+#include "./../dependencies/cJSON/cJSON.h"
+
+HttpResponse handle_bonjour_route(const HttpRequest *req)
+{
+    if (req->body != NULL)
+    {
+        cJSON *json = cJSON_Parse(req->body);
+        char *printed_json = cJSON_Print(json);
+        if (printed_json != NULL)
+        {
+            printf("JSON: \n%s\n", printed_json);
+            free(printed_json); // Free the printed string when done
+        }
+
+        // Always free the cJSON object after use
+        cJSON_Delete(json);
+    }
+    else
+    {
+        printf("No body received.\n");
+    }
+    return (HttpResponse){"bonjour", "text/plain", 200};
+}
 
 HttpResponse handle_hello_route(const HttpRequest *req)
 {
     return (HttpResponse){"Hello, World!", "text/plain", 200};
-}
-
-HttpResponse handle_bonjour_route(const HttpRequest *req)
-{
-    return (HttpResponse){"bonjour", "text/plain", 200};
 }
 
 int main()

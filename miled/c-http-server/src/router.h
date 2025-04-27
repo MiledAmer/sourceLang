@@ -28,6 +28,7 @@ typedef struct
     size_t params_count;
     char params_keys[MAX_ROUTE_PARAMS][MAX_PARAM_KEY];
     char params_values[MAX_ROUTE_PARAMS][MAX_PARAM_VALUE];
+    char *body; 
 } HttpRequest;
 
 typedef struct
@@ -50,6 +51,6 @@ void router_init();
 void router_add_route(HttpMethod method, const char *pattern, RouteHandler handler);
 bool router_dispatch(socket_fd_t client_socket, HttpRequest *req);
 void router_cleanup();
-static void build_route_key(char *dst, size_t size, HttpMethod method, const char *path);
+void build_route_key(char *dst, size_t size, HttpMethod method, const char *path);
 
 #endif

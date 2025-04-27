@@ -129,7 +129,7 @@ bool router_dispatch(socket_fd_t client_socket, HttpRequest *req)
     return false;
 }
 
-static void build_route_key(char *dst, size_t size, HttpMethod method, const char *path)
+void build_route_key(char *dst, size_t size, HttpMethod method, const char *path)
 {
     snprintf(dst, size, "%d:%s", method, path);
 }
