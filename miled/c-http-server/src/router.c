@@ -43,17 +43,31 @@ bool router_dispatch(socket_fd_t client_socket, HttpRequest *req)
 
     char key[512];
     build_route_key(key, sizeof(key), req->method, req->path);
+    printf("Dispatching route: %s\n", key);
 
     Route *entry = raxFind(router_tree, (unsigned char *)key, strlen(key));
+
+    if (entry == raxNotFound)
+    {
+        const char *response;
+        response = build_response(
+            "400 Bad Request",
+            "text/plain",
+            400);
+
+        send(client_socket, response, strlen(response), 0);
+        return false;
+    }
+
     if (entry != raxNotFound)
     {
+
         HttpResponse res = entry->handler(req);
         const char *response = build_response(res.body, res.content_type, res.status_code);
         send(client_socket, response, strlen(response), 0);
         return true;
     }
 
-    // Dynamic route matching (basic param parsing)
     raxIterator iter;
     raxStart(&iter, router_tree);
     raxSeek(&iter, "^", NULL, 0);
