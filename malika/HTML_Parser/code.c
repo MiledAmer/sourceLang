@@ -1,3 +1,5 @@
+Processing import: cardComponent from path: "./cardComponent.src"
+Processing import: userProfile from path: "./userProfile.src"
 /* Includes automatiques */
 #include <stdio.h>
 #include <stdlib.h>

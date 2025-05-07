@@ -113,6 +113,7 @@ void extract_component_props(const char* component_name, const char* buffer) {
 
 // Update process_import to extract props
 void process_import(char* component, char* path) {
+    printf("Processing import: %s from path: %s\n", component, path);
     // Remove quotes from path
     char real_path[256];
     strncpy(real_path, path + 1, strlen(path) - 2);  // Remove beginning and ending quotes
